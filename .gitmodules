@@ -1,0 +1,6 @@
+[submodule "pad-lab-town-service"]
+	path = pad-lab-town-service
+	url = https://github.com/DmitriiKaban/pad-lab-town-service
+[submodule "pad-lab-character-service"]
+	path = pad-lab-character-service
+	url = https://github.com/DmitriiKaban/pad-lab-character-service
