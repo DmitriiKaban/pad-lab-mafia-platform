@@ -4,3 +4,9 @@
 [submodule "pad-lab-character-service"]
 	path = pad-lab-character-service
 	url = https://github.com/DmitriiKaban/pad-lab-character-service
+[submodule "communication-service"]
+	path = communication-service
+	url = https://github.com/mirrerror/mafia-platform-communication-service
+[submodule "rumours-service"]
+	path = rumours-service
+	url = https://github.com/mirrerror/mafia-platform-rumours-service
