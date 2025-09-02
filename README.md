@@ -1,8 +1,12 @@
 # Mafia Platform Design Document
 
-This document outlines the microservice architecture, technologies, API and communication patterns for the multiplayer game, "Mafia". 
+---
+
+This document outlines the microservice architecture, technologies, API and communication patterns for the multiplayer game, "Mafia".
 
 # Service Boundaries & Architecture
+
+---
 
 ## Service Responsibilities
 
@@ -25,27 +29,29 @@ This document outlines the microservice architecture, technologies, API and comm
 
 # Technologies & Communication Patterns
 
+---
+
 ## Technology Stack
 | Service(s)              | Developer     | Language | Framework      | Database              |
 |--------------------------|--------------|----------|----------------|-----------------------|
 | User Management, Game    | Alexandrina G. | Python   | FastAPI        | PostgreSQL            |
 | Shop, Roleplay           | Alexander C.   | C#       | ASP.NET Core   | PostgreSQL            |
 | Town, Character          | Dmitrii C.     | Kotlin   | Spring Boot    | PostgreSQL, Redis     |
-| Rumors, Communication    | Dmitrii B.     | C#       | Spring Boot    | PostgreSQL, Websockets |
-| Task, Voting             | Irina N.       | Python   | NestJS         | PostgreSQL            |
+| Rumors, Communication    | Dmitrii B.     | C#       | ASP.NET Core    | PostgreSQL, Websockets |
+| Task, Voting             | Irina N.       | Python   | FastAPI         | PostgreSQL            |
 
 
 ## Communication Patterns
 
 - Synchronous (REST APIs)
 
-    Description: For direct, request/response interactions where the client needs an immediate answer. For example, when a user attempts to log in, they must wait for a success or failure response.
-    Technology: We use RESTful APIs over HTTPS with JSON as the data serialization format.
+  Description: For direct, request/response interactions where the client needs an immediate answer. For example, when a user attempts to log in, they must wait for a success or failure response.
+  Technology: We use RESTful APIs over HTTPS with JSON as the data serialization format.
 
-    Motivation & Trade-offs:
-✅ Simplicity: REST is a well-understood, stateless, and straightforward pattern, making development and debugging easier.
-✅ Immediate Feedback: It's perfect for user-facing actions that require instant confirmation.
-❌ Tight Coupling: The caller is temporarily coupled to the called service. If the downstream service is slow or unavailable, the caller is blocked, which can lead to cascading failures.
+  ### Motivation & Trade-offs:
+- ✅ Simplicity: REST is a well-understood, stateless, and straightforward pattern, making development and debugging easier.
+- ✅ Immediate Feedback: It's perfect for user-facing actions that require instant confirmation.
+- ❌ Tight Coupling: The caller is temporarily coupled to the called service. If the downstream service is slow or unavailable, the caller is blocked, which can lead to cascading failures.
 
 # Communication Contract
 
@@ -58,9 +64,10 @@ This section defines our data management strategy and the specific API endpoints
 
 # API Endpoints
 
+---
+
 All request and response bodies are in **JSON** format.
 
----
 
 ## User Management Service
 
