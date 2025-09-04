@@ -10,3 +10,9 @@
 [submodule "rumours-service"]
 	path = rumours-service
 	url = https://github.com/mirrerror/mafia-platform-rumours-service
+[submodule "task-service"]
+	path = task-service
+	url = https://github.com/NedealcovaIrina/task-service
+[submodule "voting-service"]
+	path = voting-service
+	url = https://github.com/NedealcovaIrina/voting-service
