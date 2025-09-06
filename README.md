@@ -71,11 +71,11 @@ All request and response bodies are in **JSON** format.
 
 ## User Management Service
 
-### POST `/register`
+### POST `/users/register`
 Creates a new user account.  
 **Request Body:**
 ```json
-{ "username": "string", "email": "string", "password": "string", "deviceInfo": "object" }
+{ "username": "string", "email": "string", "password": "string", "identification": "string", "deviceInfo": "object", "location": "string" }
 ```
 
 **Response (201 Created):**
@@ -84,13 +84,13 @@ Creates a new user account.
 { "userId": "uuid", "username": "string" }
 ```
 
-### POST `/login`
+### POST `/users/login`
 
 Authenticates a user and returns a token.
 **Request Body:**
 
 ```json
-{ "email": "string", "password": "string" }
+{ "email": "string", "password": "string", "deviceInfo": "object" }
 ```
 
 **Response (200 OK):**
@@ -105,22 +105,35 @@ Retrieves a user's profile information, including currency.
 **Response (200 OK):**
 
 ```json
-{ "userId": "uuid", "username": "string", "currency": "integer" }
+{ "userId": "uuid", "username": "string", "email": "string", "currency": "integer" }
 ```
 
 ### PUT `/users/{userId}/currency`
 
-Adds or subtracts from a user's currency balance. *(Internal endpoint)*
+Adds, substracts or sets a user's currency balance. *(Internal endpoint)*
 **Request Body:**
 
 ```json
-{ "amount": "integer" }
+{ "amount": "integer", "operation": "add|subtract|set" }
 ```
 
 **Response (200 OK):**
 
 ```json
-{ "userId": "uuid", "newBalance": "integer" }
+{ "userId": "uuid", "newBalance": "integer", "transactionId": "uuid" }
+```
+
+### GET `/users/internal/details`
+
+Used by other services to get user details. *(Internal endpoint)*
+
+**Query Parameters:**
+- `userIds`: Comma-separated list of UUIDs
+
+**Response (200 OK):**
+
+```json
+{   "users": [ { "userId": "uuid", "username": "string", "isAlive": "boolean" } ] }
 ```
 
 ---
@@ -352,9 +365,12 @@ Connects a user to a private chat (e.g., Mafia channel).
 { "type": "message", "sender": "string", "content": "string", "timestamp": "datetime" }
 ```
 
+---
 
+# Repository Structure & Development Workflow
 
-### Repository Structure
+## Repository Organization
+
 - Common Public Repository (CPR): Contains documentation, architecture diagrams, and submodule references
 - Individual Private Repositories: Each team member owns 2 microservice repositories
   - Alexandrina G.: user-management-service, game-service
