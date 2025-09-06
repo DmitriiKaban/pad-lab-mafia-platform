@@ -51,7 +51,7 @@ This document outlines the microservice architecture, technologies, API and comm
   ### Motivation & Trade-offs:
 - ✅ Simplicity: REST is a well-understood, stateless, and straightforward pattern, making development and debugging easier.
 - ✅ Immediate Feedback: It's perfect for user-facing actions that require instant confirmation.
-- ❌ Tight Coupling: The caller is temporarily coupled to the called service. If the downstream service is slow or unavailable, the caller is blocked, which can lead to cascading failures.
+- ❌ Tight Coupling: The caller is temporarily coupled to the called service. If the downstream service is slow or unavailable, the caller is blocked.
 
 # Communication Contract
 
@@ -59,8 +59,8 @@ This section defines our data management strategy and the specific API endpoints
 
 ## Data Management
 
-- Database per Service: Each microservice owns and manages its own private database. No other service is allowed to access this database directly.
-- API-based Access: All communication and data sharing between services must occur through the publicly exposed and well-defined APIs or through the asynchronous messaging system. This enforces encapsulation and allows services to evolve their internal data structures without breaking other parts of the system.
+- Database per Service: Each microservice (except communication service) owns and manages its own private database. No other service is allowed to access this database directly.
+- API-based Access: All communication and data sharing between services must occur through the publicly exposed and well-defined APIs or through the asynchronous messaging system. 
 
 # API Endpoints
 
