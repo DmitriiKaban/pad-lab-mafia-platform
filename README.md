@@ -351,3 +351,38 @@ Connects a user to a private chat (e.g., Mafia channel).
 ```json
 { "type": "message", "sender": "string", "content": "string", "timestamp": "datetime" }
 ```
+
+
+
+### Repository Structure
+- Common Public Repository (CPR): Contains documentation, architecture diagrams, and submodule references
+- Individual Private Repositories: Each team member owns 2 microservice repositories
+  - Alexandrina G.: user-management-service, game-service
+  - Alexander C.: shop-service, roleplay-service
+  - Dmitrii C.: town-service, character-service
+  - Dmitrii B.: rumors-service, communication-service
+  - Irina N.: task-service, voting-service
+
+
+### Branch Strategy
+- main: Production-ready code, protected branch
+- development: Integration branch for testing
+- feature/*: Individual feature development
+
+
+### Contribution Rules
+- Minimum 2 code reviews required for merge
+- All tests must pass before merge
+- Follow naming conventions: feature/service-functionality
+- Squash commits when merging to main
+- Delete feature branches after successful merge
+
+### Code Review Process
+1. Create feature branch from development
+2. Implement changes with appropriate tests
+3. Create PR to development branch
+4. Address review feedback
+5. Squash and merge after approval
+
+### Testing Requirements
+- Unit test coverage minimum: 75 %
