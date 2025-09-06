@@ -140,28 +140,83 @@ Used by other services to get user details. *(Internal endpoint)*
 
 ## Game Service
 
-### POST `/lobbies/create-lobby`
+### POST `/games`
 
 Creates a new game lobby.
 **Request Body:**
 
 ```json
-{ "lobbyName": "string", "maxPlayers": "integer" }
+{ "hostId": "uuid", "lobbyName": "string", "maxPlayers": "integer" }
 ```
 
 **Response (201 Created):**
 
 ```json
-{ "lobbyId": "uuid", "joinCode": "string" }
+{ "gameId": "uuid", "lobbyId": "uuid", "hostId": "uuid", "status": "waiting_for_players", "joinCode": "string" }
 ```
 
-### GET `/lobbies/{lobbyId}`
+### POST `/games/{gameId}/join`
 
-Gets the current state of a game lobby.
+Allows a user to join a game lobby. *(Requires Auth)*
+**Request Body:**
+```json
+{ "userId": "uuid" }
+```
+
 **Response (200 OK):**
 
 ```json
-{ "lobbyId": "uuid", "gameState": "string", "day": "integer", "players": ["object"] }
+{ "message": "Successfully joined game.", "success": "boolean", "playerCount": "number" }
+```
+
+### POST `/games/{gameId}/start`
+
+Starts the game. Can only be triggered by the host. *(Requires Auth)*
+**Request Body:**
+```json
+{ "ownerId": "uuid" }
+```
+
+**Response (200 OK):**
+
+```json
+{ "message": "Game started. Roles have been assigned.", "gameId": "uuid", "players": "array", "initialState": "object" }
+```
+
+### GET `/games/{gameId}/state`
+
+Retrieves the current public state of the game. *(Requires Auth)*
+**Response (200 OK):**
+
+```json
+{ "gameId": "uuid", "phase": "day|night|voting|ended", "cycle": "day", "status": "active", "dayNumber": "number", "alivePlayers": "array", "deadPlayers": "array", "currentTimer": "number", "players": [ { "userId": "uuid", "username": "string", "isAlive": "boolean" } ], "events": "array" }
+```
+
+### POST `/games/{gameId}/events`
+
+Processes game events and actions. *(Requires Auth)*
+**Request Body:**
+```json
+{ "eventType": "string", "playerId": "uuid", "data": "object" }
+```
+
+**Response (200 OK):**
+
+```json
+{ "eventId": "uuid", "processed": "boolean", "nextState": "object" }
+```
+
+### WebSocket Events (Server → Client)
+The Game Service uses WebSockets to push real-time updates to clients.
+
+**Public Event:**
+```json
+{ "event": "gameStateUpdate", "data": { "cycle": "night", "message": "Night has begun." } }
+```
+
+**Private Event (e.g., for Sheriff):**
+```json
+{ "event": "privateRoleResult", "data": { "type": "INVESTIGATION_RESULT", "targetId": "uuid-of-player-investigated", "result": "MAFIA" } }
 ```
 
 ---
