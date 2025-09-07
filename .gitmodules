@@ -22,3 +22,11 @@
 [submodule "game-service"]
 	path = game-service
 	url = https://github.com/AlexandrinaGorcea/game-service
+[submodule "shop-service"]
+	path = shop-service
+	url = https://github.com/UrMjsty/shop-service
+	branch = main
+[submodule "roleplay-service"]
+	path = roleplay-service
+	url = https://github.com/UrMjsty/roleplay-service
+	branch = main
