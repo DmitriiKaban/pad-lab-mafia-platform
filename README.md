@@ -442,7 +442,7 @@ Connects a user to a private chat (e.g., Mafia channel).
 
 
 ### Contribution Rules
-- Minimum 2 code reviews required for merge
+- Minimum 3 code reviews required for merge
 - All tests must pass before merge
 - Follow naming conventions: feature/service-functionality
 - Squash commits when merging to main
