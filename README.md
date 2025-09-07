@@ -403,24 +403,32 @@ Gets the results of the day's vote *(called by Game Service)*.
 
 **Technology:** WebSockets
 
-### WS `/ws/global/{lobbyId}`
+### WS `/api/app/chat/global/{lobbyId}`
 
-Connects a user to the global chat for a specific lobby.
+Used for sending messages to the global chat in the specified lobby.
 
-### WS `/ws/private/{chatId}`
+### WS `/api/topic/chat/global/{lobbyId}`
 
-Connects a user to a private chat (e.g., Mafia channel).
+Used for subscription to the incoming global chat messages in the specified lobby.
+
+### WS `/api/app/chat/private/{channelName}/{lobbyId}`
+
+Used for sending messages to a private chat with the specified name in the specified lobby.
+
+### WS `/api/topic/chat/private/{channelName}/{lobbyId}`
+
+Used for subscription to the incoming messages from a private chat with the specified name in the specified lobby.
 
 **Message Format (Client → Server):**
 
 ```json
-{ "type": "message", "content": "string" }
+{ "content": "string" }
 ```
 
 **Message Format (Server → Client):**
 
 ```json
-{ "type": "message", "sender": "string", "content": "string", "timestamp": "datetime" }
+{ "sender": "string", "content": "string", "timestamp": "datetime" }
 ```
 
 ---
