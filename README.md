@@ -80,6 +80,7 @@ All request and response bodies are in **JSON** format.
 
 ### POST `/users/register`
 Creates a new user account.  
+
 **Request Body:**
 ```json
 { "username": "string", "email": "string", "password": "string", "identification": "string", "deviceInfo": "object", "location": "string" }
@@ -94,6 +95,7 @@ Creates a new user account.
 ### POST `/users/login`
 
 Authenticates a user and returns a token.
+
 **Request Body:**
 
 ```json
@@ -109,6 +111,7 @@ Authenticates a user and returns a token.
 ### GET `/users/{userId}`
 
 Retrieves a user's profile information, including currency.
+
 **Response (200 OK):**
 
 ```json
@@ -118,6 +121,7 @@ Retrieves a user's profile information, including currency.
 ### PUT `/users/{userId}/currency`
 
 Adds, substracts or sets a user's currency balance. *(Internal endpoint)*
+
 **Request Body:**
 
 ```json
@@ -150,6 +154,7 @@ Used by other services to get user details. *(Internal endpoint)*
 ### POST `/games`
 
 Creates a new game lobby.
+
 **Request Body:**
 
 ```json
@@ -165,6 +170,7 @@ Creates a new game lobby.
 ### POST `/games/{gameId}/join`
 
 Allows a user to join a game lobby. *(Requires Auth)*
+
 **Request Body:**
 ```json
 { "userId": "uuid" }
@@ -179,6 +185,7 @@ Allows a user to join a game lobby. *(Requires Auth)*
 ### POST `/games/{gameId}/start`
 
 Starts the game. Can only be triggered by the host. *(Requires Auth)*
+
 **Request Body:**
 ```json
 { "ownerId": "uuid" }
@@ -193,6 +200,7 @@ Starts the game. Can only be triggered by the host. *(Requires Auth)*
 ### GET `/games/{gameId}/state`
 
 Retrieves the current public state of the game. *(Requires Auth)*
+
 **Response (200 OK):**
 
 ```json
@@ -202,6 +210,7 @@ Retrieves the current public state of the game. *(Requires Auth)*
 ### POST `/games/{gameId}/events`
 
 Processes game events and actions. *(Requires Auth)*
+
 **Request Body:**
 ```json
 { "eventType": "string", "playerId": "uuid", "data": "object" }
@@ -211,19 +220,6 @@ Processes game events and actions. *(Requires Auth)*
 
 ```json
 { "eventId": "uuid", "processed": "boolean", "nextState": "object" }
-```
-
-### WebSocket Events (Server → Client)
-The Game Service uses WebSockets to push real-time updates to clients.
-
-**Public Event:**
-```json
-{ "event": "gameStateUpdate", "data": { "cycle": "night", "message": "Night has begun." } }
-```
-
-**Private Event (e.g., for Sheriff):**
-```json
-{ "event": "privateRoleResult", "data": { "type": "INVESTIGATION_RESULT", "targetId": "uuid-of-player-investigated", "result": "MAFIA" } }
 ```
 
 ---
