@@ -223,55 +223,125 @@ Processes game events and actions. *(Requires Auth)*
 ```
 
 ---
-
 ## Shop Service
 
-### GET `/items`
+### POST /purchase
 
-Lists all items available for purchase today.
-**Response (200 OK):**
+Allows a player to buy an item from the shop using in-game currency.
 
-```json
-[
-  { "itemId": "uuid", "name": "string", "description": "string", "price": "double", "quantity": "integer" }
-]
-```
-
-### POST `/purchase`
-
-Allows a user to buy an item.
 **Request Body:**
 
 ```json
-{ "userId": "uuid", "itemId": "uuid", "quantity": "integer" }
+{ "userId": "uuid", "itemId": "uuid", "lobbyId": "uuid" }
 ```
 
 **Response (200 OK):**
 
 ```json
-{ "purchaseId": "uuid", "status": "success" }
+{ "userId": "uuid", "itemId": "uuid", "status": "success" }
 ```
+
+---
+
+### GET /inventory
+
+Retrieves the list of items currently available in the shop for a given lobby.
+
+**Request Parameters:**
+`lobbyId: uuid`
+
+**Response (200 OK):**
+
+```json
+{ 
+  "lobbyId": "uuid", 
+  "items": [
+    { "itemId": "uuid", "name": "Garlic", "price": 10, "quantity": 3 },
+    { "itemId": "uuid", "name": "Water", "price": 5, "quantity": 5 }
+  ] 
+}
+```
+
+---
+
+### POST /restock
+
+Restocks the shop’s inventory for a lobby based on the balancing algorithm.
+
+**Request Body:**
+
+```json
+{ "lobbyId": "uuid" }
+```
+
+**Response (200 OK):**
+
+```json
+{ "lobbyId": "uuid", "restockedItems": [ "Garlic", "Water" ] }
+```
+
 
 ---
 
 ## Roleplay Service
 
-### POST `/abilities/use`
+### POST /action
 
-A player uses their role-specific ability on a target.
+Executes a role-specific action (e.g., murder, investigate, heal) on a target player.
+
 **Request Body:**
 
 ```json
-{ "userId": "uuid", "ability": "string", "targetUserId": "uuid", "lobbyId": "uuid" }
+{ "userId": "uuid", "action": "string", "targetId": "uuid", "lobbyId": "uuid" }
 ```
 
 **Response (200 OK):**
 
 ```json
-{ "actionId": "uuid", "result": "string", "message": "You successfully used your ability." }
+{ "userId": "uuid", "action": "murder", "targetId": "uuid", "result": "success" }
 ```
 
 ---
+
+### GET /attempts
+
+Retrieves the history of roleplay attempts made by players in a specific lobby.
+
+**Request Parameters:**
+`lobbyId: uuid`
+
+**Response (200 OK):**
+
+```json
+{
+  "lobbyId": "uuid",
+  "attempts": [
+    { "userId": "uuid", "action": "murder", "targetId": "uuid", "result": "failed" },
+    { "userId": "uuid", "action": "investigate", "targetId": "uuid", "result": "role_found" }
+  ]
+}
+```
+
+---
+
+### POST /announcement
+
+Creates a filtered announcement (e.g., “A player was eliminated last night”) for the Game Service to broadcast.
+
+**Request Body:**
+
+```json
+{ "lobbyId": "uuid", "message": "A player was eliminated last night" }
+```
+
+**Response (200 OK):**
+
+```json
+{ "lobbyId": "uuid", "announcementId": "uuid", "status": "queued" }
+```
+
+---
+
 
 ## Town Service
 
