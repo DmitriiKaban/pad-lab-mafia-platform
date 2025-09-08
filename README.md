@@ -21,9 +21,13 @@ This document outlines the microservice architecture, technologies, API and comm
 - Task Service: Assigns daily tasks to players based on their role and career. It validates task completion and triggers currency rewards. The actions taken during tasks can become fodder for the Rumors Service.
 - Voting Service: Manages the daily voting process to exile a player. It collects votes from all players, tallies the results, and reports the outcome to the Game Service.
 
-## Architecture Diagram
+## Architectural Diagram
 
 
+<img width="1390" height="1032" alt="image" src="./documentation-resources/Diagram_PAD_lab0 (1).jpg" />
+The diagram illustrates the client-server architecture of the Mafia Platform. The client app communicates with a suite of modular microservices, each responsible for a distinct domain such as user management, gameplay orchestration, roleplay logic, voting, tasks, rumors, and more. Every service operates independently with its own database, enabling scalability and maintainability.
+
+Arrows between services represent internal API calls used to validate actions, synchronize game state, and exchange filtered data—such as announcements, shop updates, character details, and team information. This design supports a robust, event-driven multiplayer experience with clear separation of concerns.
 
 
 
@@ -61,13 +65,6 @@ This section defines our data management strategy and the specific API endpoints
 
 - Database per Service: Each microservice (except communication service) owns and manages its own private database. No other service is allowed to access this database directly.
 - API-based Access: All communication and data sharing between services must occur through the publicly exposed and well-defined APIs or through the asynchronous messaging system. 
-
-# Architectural Diagram of Microservices operation
-
-<img width="1068" height="798" alt="image" src="./documentation-resources/Diagram_PAD_lab0 (1).jpg" />
-The diagram illustrates the client-server architecture of the Mafia Platform. The client app communicates with a suite of modular microservices, each responsible for a distinct domain such as user management, gameplay orchestration, roleplay logic, voting, tasks, rumors, and more. Every service operates independently with its own database, enabling scalability and maintainability.
-
-Arrows between services represent internal API calls used to validate actions, synchronize game state, and exchange filtered data—such as announcements, shop updates, character details, and team information. This design supports a robust, event-driven multiplayer experience with clear separation of concerns.
 
 # API Endpoints
 
@@ -523,7 +520,7 @@ Used for subscription to the incoming messages from a private chat with the spec
 
 
 ### Contribution Rules
-- Minimum 3 code reviews required for merge
+- Minimum 2 code reviews required for merge
 - All tests must pass before merge
 - Follow naming conventions: feature/service-functionality
 - Squash commits when merging to main
