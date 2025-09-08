@@ -64,7 +64,7 @@ This section defines our data management strategy and the specific API endpoints
 
 # Architectural Diagram of Microservices operation
 
-<img width="1068" height="798" alt="image" src="./documentation-resources/Diagram_PAD_lab0.jpg" />
+<img width="1068" height="798" alt="image" src="./documentation-resources/Diagram_PAD_lab0 (1).jpg" />
 The diagram illustrates the client-server architecture of the Mafia Platform. The client app communicates with a suite of modular microservices, each responsible for a distinct domain such as user management, gameplay orchestration, roleplay logic, voting, tasks, rumors, and more. Every service operates independently with its own database, enabling scalability and maintainability.
 
 Arrows between services represent internal API calls used to validate actions, synchronize game state, and exchange filtered data—such as announcements, shop updates, character details, and team information. This design supports a robust, event-driven multiplayer experience with clear separation of concerns.
