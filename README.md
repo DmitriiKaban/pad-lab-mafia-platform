@@ -1175,36 +1175,103 @@ Get rumour - player buys a rumour.
 
 
 
-**Technology:** WebSockets
+## API Reference
 
-### WS `/api/app/chat/global/{lobbyId}`
+---
 
-Used for sending messages to the global chat in the specified lobby.
+### Send Global Message
 
-### WS `/api/topic/chat/global/{lobbyId}`
+**Endpoint:** `POST /api/chat/global/{lobbyId}/send-message`
 
-Used for subscription to the incoming global chat messages in the specified lobby.
+**Description:** Sends a message to the specified global chat in the specified lobby.
 
-### WS `/api/app/chat/private/{channelName}/{lobbyId}`
+**URL Parameters:**
 
-Used for sending messages to a private chat with the specified name in the specified lobby.
+* `lobbyId` *(string)* – Unique lobby identifier.
 
-### WS `/api/topic/chat/private/{channelName}/{lobbyId}`
+**Request Body:** [ChatMessage Model](#chatmessage-model)
 
-Used for subscription to the incoming messages from a private chat with the specified name in the specified lobby.
+---
 
-**Message Format (Client → Server):**
+### Send Private Message
+
+**Endpoint:** `POST /api/chat/private/{lobbyId}/{channelName}/send-message`
+
+**Description:** Sends a message to all clients in the specified private channel inside the specified lobby.
+
+**URL Parameters:**
+
+* `lobbyId` *(string)* – The lobby identifier.
+* `channelName` *(string)* – The private channel name.
+
+**Request Body:** [ChatMessage Model](#chatmessage-model)
+
+---
+
+## SignalR Hub Reference
+
+### Server Methods (Client → Server)
+
+| Method                                                                        | Description                                                                            |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `JoinGlobalChat(string lobbyId, long userId)`                                             | Adds the specified user to the global chat in the specified lobby.                                                     |
+| `LeaveGlobalChat(string lobbyId, long userId)`                                            | Removes the specified user from the global chat in the specified lobby.                                                |
+| `JoinPrivateChannel(string lobbyId, string channelName, long userId)`                      | Adds the specified user to the specified private channel.                                                  |
+| `LeavePrivateChannel(string lobbyId, string channelName, long userId)`                     | Removes the speicified user from the specified private channel.                                             |
+| `SendGlobalMessage(string lobbyId, ChatMessage message)`                      | Broadcasts a message to the global chat in the specified lobby. Throws `HubException` on validation errors.    |
+| `SendPrivateMessage(string channelName, string lobbyId, ChatMessage message)` | Broadcasts a message to the specified private channel in the specified lobby. Throws `HubException` on validation errors. |
+
+---
+
+### Client Methods (Server → Client)
+
+| Method                                         | Description                                                |
+| ---------------------------------------------- | ---------------------------------------------------------- |
+| `ReceiveGlobalMessage(ChatResponse response)`  | Triggered when a new message arrives in a global chat.    |
+| `ReceivePrivateMessage(ChatResponse response)` | Triggered when a new message arrives in a private channel. |
+
+---
+
+## Data Models
+
+### ChatMessage Model
+
+| Field       | Type   | Description                          | Validation Rules |
+|-------------|--------|--------------------------------------|------------------|
+| `senderId`  | long   | The unique ID of the sender         | Required, must be ≥ 0 |
+| `senderName`| string | The display name of the sender      | Required, 2–50 characters |
+| `content`   | string | The text content of the message     | Required, not empty, max 200 characters |
+
+**Example:**
 
 ```json
-{ "content": "string" }
+{
+  "senderId": 123,
+  "senderName": "TestUser",
+  "content": "Hello, world!"
+}
 ```
 
-**Message Format (Server → Client):**
+---
 
+### ChatResponse Model
+
+| Field       | Type     | Description |
+|-------------|----------|-------------|
+| `senderId`  | long     | ID of the sender |
+| `senderName`| string   | Name of the sender |
+| `content`   | string   | Message content |
+| `timestamp` | DateTime | UTC timestamp from server |
+
+**Example:**
 ```json
-{ "sender": "string", "content": "string", "timestamp": "datetime" }
+{
+  "senderId": 123,
+  "senderName": "TestUser",
+  "content": "Hello, world!",
+  "timestamp": "2025-09-09T20:30:00.123Z"
+}
 ```
-
 
 ---
 
