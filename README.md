@@ -107,7 +107,7 @@ This section defines our data management strategy and the specific API endpoints
 All request and response bodies are in **JSON** format.
 
 
-### 1. User Management Service
+## 1. User Management Service
 
 
 
@@ -245,7 +245,7 @@ Retrieves user's current currency balance.
 
 ---
 
-### 2. Game Service
+## 2. Game Service
 
 
 
@@ -530,7 +530,7 @@ Submit voting results.
 
 ---
 
-### 3. Shop Service
+## 3. Shop Service
 
 
 
@@ -647,7 +647,7 @@ List available items in the shop.
 
 ---
 
-### 4. Roleplay Service
+## 4. Roleplay Service
 
 
 
@@ -736,7 +736,7 @@ Register night events - which contains who did what and to whom.
 
 ---
 
-### 5. Town Service
+## 5. Town Service
 
 
 
@@ -882,7 +882,7 @@ Get all movements of a specific player.
 
 ---
 
-### 6. Character Service
+## 6. Character Service
 
 
 
@@ -1122,7 +1122,7 @@ Update character asset.
 
 ---
 
-### 7. Rumours Service
+## 7. Rumours Service
 
 
 
@@ -1171,7 +1171,7 @@ Get rumour - player buys a rumour.
 
 ---
 
-### 8. Communication Service
+## 8. Communication Service
 
 
 
@@ -1275,7 +1275,7 @@ Get rumour - player buys a rumour.
 
 ---
 
-### 9. Task Service
+## 9. Task Service
 
 
 
@@ -1347,7 +1347,7 @@ Update task status.
 
 ---
 
-### 10. Voting Service
+## 10. Voting Service
 
 
 
