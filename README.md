@@ -1208,6 +1208,14 @@ Get rumour - player buys a rumour.
 
 ---
 
+### Toggle Global Chat
+
+**Endpoint:** `POST /api/chat/global/{lobbyId}/toggle`
+
+**Description:** Enables/disables (toggles) the global chat in the specified lobby.
+
+---
+
 ## SignalR Hub Reference
 
 ### Server Methods (Client → Server)
