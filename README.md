@@ -75,7 +75,7 @@ Arrows between services represent internal API calls used to validate actions, s
 | User Management, Game    | Alexandrina G. | Python   | FastAPI        | PostgreSQL            |
 | Shop, Roleplay           | Alexander C.   | C#       | ASP.NET Core   | PostgreSQL            |
 | Town, Character          | Dmitrii C.     | Kotlin   | Spring Boot    | PostgreSQL, Redis     |
-| Rumors, Communication    | Dmitrii B.     | C#       | ASP.NET Core    | PostgreSQL |
+| Rumors, Communication    | Dmitrii B.     | C#       | ASP.NET Core    | PostgreSQL, Websockets |
 | Task, Voting             | Irina N.       | Python   | FastAPI         | PostgreSQL            |
 
 
@@ -107,7 +107,8 @@ This section defines our data management strategy and the specific API endpoints
 All request and response bodies are in **JSON** format.
 
 
-## 1. User Management Service
+### 1. User Management Service
+
 
 
 #### POST /login
@@ -117,8 +118,7 @@ Authenticates user and returns JWT token.
 ```json
 {
   "username": "string",
-  "password": "string",
-  "deviceInfo": "object"
+  "password": "string"
 }
 ```
 
@@ -151,10 +151,7 @@ Creates a new user account.
 {
   "username": "string",
   "email": "string",
-  "password": "string",
-  "identification": "string",
-  "deviceInfo": "object",
-  "location": "string"
+  "password": "string"
 }
 ```
 
@@ -162,8 +159,7 @@ Creates a new user account.
 ```json
 {
   "data": {
-    "id": "uuid",
-    "username": "string" 
+    "id": "uuid"
   }
 }
 ```
@@ -188,7 +184,7 @@ Creates a new user account.
   }
   ```
 
-#### GET /profile/{id}
+#### GET /profile
 Retrieves user profile information.
 
 **Headers:**
@@ -220,29 +216,18 @@ Retrieves user profile information.
   }
   ```
 
-#### PUT /currency/{id}
-Adds, substracts or sets a user's currency balance.
+#### GET /currency
+Retrieves user's current currency balance.
 
 **Headers:**
 - `Authorization: Bearer <token>`
 
-**Request Body:**
-```json
-{
-  "currency": "diamonds|coins",
-  "amount": "integer",
-  "operation": "add|subtract|set"
-}
-```
-
 **Success Response (200):**
 ```json
 {
- "data": {
-    "id": "uuid",
-    "newBalance": "integer",
-    "transactionId": "uuid",
-    "currency": "diamonds|coins"
+  "data": {
+    "diamonds": 50,
+    "coins": 250
   }
 }
 ```
@@ -260,8 +245,7 @@ Adds, substracts or sets a user's currency balance.
 
 ---
 
-
-## 2. Game Service
+### 2. Game Service
 
 
 
@@ -274,9 +258,7 @@ Creates a new game lobby.
 **Request Body:**
 ```json
 {
-  "hostId": "uuid",
-  "lobbyName": "string",
-  "maxPlayers": "integer"
+  "maxPlayers": 10
 }
 ```
 
@@ -284,11 +266,11 @@ Creates a new game lobby.
 ```json
 {
   "data": {
-    "gameId": "uuid",
     "lobbyId": "uuid",
     "hostId": "uuid",
-    "status": "waiting_for_players",
-    "joinCode": "string"
+    "maxPlayers": 10,
+    "currentPlayers": 1,
+    "status": "waiting"
   }
 }
 ```
@@ -310,20 +292,14 @@ Join an existing game lobby.
 **Headers:**
 - `Authorization: Bearer <token>`
 
-**Request Body:**
-```json
-{
-  "id": "uuid"
-}
-```
-
 **Success Response (200):**
 ```json
 {
   "data": {
     "lobbyId": "uuid",
-    "currentPlayers": "integer",
-    "maxPlayers": "integer"
+    "playerId": "uuid",
+    "currentPlayers": 6,
+    "maxPlayers": 10
   }
 }
 ```
@@ -354,20 +330,12 @@ Start the game in the lobby.
 **Headers:**
 - `Authorization: Bearer <token>`
 
-**Request Body:**
-```json
-{
-  "hostId": "uuid"
-}
-```
-
 **Success Response (200):**
 ```json
 {
   "data": {
     "gameId": "uuid",
-    "status": "started",
-    "players": "array"
+    "status": "started"
   }
 }
 ```
@@ -403,9 +371,9 @@ Get current game state.
 {
   "data": {
     "gameId": "uuid",
-    "phase": "day|night|voting|ended",
-    "dayNumber": "number",
-    "playersAlive": "array",
+    "phase": "day",
+    "dayNumber": 2,
+    "playersAlive": 7,
     "totalPlayers": 10
   }
 }
@@ -454,13 +422,6 @@ Assign careers to players.
 **Headers:**
 - `Authorization: Bearer <token>`
 
-**Request Body:**
-```json
-{
-  "id": "uuid"
-}
-```
-
 **Success Response (200):**
 ```json
 {
@@ -508,7 +469,7 @@ Get players and their roles.
       {
         "playerId": "uuid",
         "username": "player1",
-        "role": "mafia|doctor|investigator|villager"
+        "role": "unknown"
       }
     ]
   }
@@ -569,7 +530,7 @@ Submit voting results.
 
 ---
 
-## 3. Shop Service
+### 3. Shop Service
 
 
 
@@ -686,7 +647,7 @@ List available items in the shop.
 
 ---
 
-## 4. Roleplay Service
+### 4. Roleplay Service
 
 
 
@@ -737,9 +698,9 @@ Register night events - which contains who did what and to whom.
 ```json
 {
   "gameId": "uuid",
-  "playerId": 12,
+  "playerId": "uuid",
   "action": "eliminate",
-  "targetPlayerId": 13
+  "targetPlayerId": "uuid"
 }
 ```
 
@@ -775,7 +736,7 @@ Register night events - which contains who did what and to whom.
 
 ---
 
-## 5. Town Service
+### 5. Town Service
 
 
 
@@ -840,7 +801,7 @@ Get movement of all players.
   "data": {
     "movements": [
       {
-        "playerId": 12,
+        "playerId": "uuid",
         "locationId": "uuid",
         "timestamp": "2023-10-01T12:00:00Z"
       }
@@ -858,7 +819,7 @@ Movement depending on location and day.
 **Request Body:**
 ```json
 {
-  "playerId": 12,
+  "playerId": "uuid",
   "locationId": "uuid"
 }
 ```
@@ -867,7 +828,7 @@ Movement depending on location and day.
 ```json
 {
   "data": {
-    "playerId": 12,
+    "playerId": "uuid",
     "fromLocationId": "uuid",
     "toLocationId": "uuid",
     "timestamp": "2023-10-01T12:00:00Z"
@@ -896,7 +857,7 @@ Get all movements of a specific player.
 ```json
 {
   "data": {
-    "playerId": 12,
+    "playerId": "uuid",
     "movements": [
       {
         "locationId": "uuid",
@@ -921,7 +882,7 @@ Get all movements of a specific player.
 
 ---
 
-## 6. Character Service
+### 6. Character Service
 
 
 
@@ -1161,15 +1122,12 @@ Update character asset.
 
 ---
 
-## 7. Rumours Service
+### 7. Rumours Service
 
 
 
-### Buy a rumour
-
-**Endpoint:** `POST /api/purchase-rumour`
-
-**Description:** Buys a random rumour in the specified lobby.
+#### POST /purchase
+Get rumour - player buys a rumour.
 
 **Headers:**
 - `Authorization: Bearer <token>`
@@ -1177,22 +1135,22 @@ Update character asset.
 **Request Body:**
 ```json
 {
-  "lobbyId": "lobby_id",
   "rumourType": "player_role",
-  "targetPlayerId": "player_id"
+  "targetPlayerId": "uuid"
 }
 ```
 
 **Success Response (200):**
 ```json
 {
-  "rumour": "Player X was seen near the victim's house last night"
+  "data": {
+    "rumour": "Player X was seen near the victim's house last night"
+  }
 }
 ```
 
 **Error Responses:**
-
-**400 Bad Request**
+- **400 Bad Request**
   ```json
   {
     "error": {
@@ -1201,8 +1159,7 @@ Update character asset.
     }
   }
   ```
-
-**404 Not Found**
+- **404 Not Found**
   ```json
   {
     "error": {
@@ -1212,19 +1169,9 @@ Update character asset.
   }
   ```
 
-**404 Not Found**
-```json
-{
-  "error": {
-    "code": "LOBBY_NOT_FOUND",
-    "message": "Lobby does not exist"
-  }
-}
-```
-
 ---
 
-## 8. Communication Service
+### 8. Communication Service
 
 
 
@@ -1244,58 +1191,6 @@ Update character asset.
 
 **Request Body:** [ChatMessage Model](#chatmessage-model)
 
-**Success Response (200):**
-```json
-{
-  "senderId": 123,
-  "senderName": "PlayerOne",
-  "content": "Hello everyone!",
-  "timestamp": "2025-09-10T14:30:45.123Z"
-}
-```
-
-**Error Responses:**
-
-**400 Bad Request - Validation Error**
-```json
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Content must not exceed 200 characters"
-  }
-}
-```
-
-**400 Bad Request - Chat Disabled**
-```json
-{
-  "error": {
-    "code": "CHAT_DISABLED",
-    "message": "Global chat is currently disabled for this lobby"
-  }
-}
-```
-
-**401 Unauthorized**
-```json
-{
-  "error": {
-    "code": "INVALID_TOKEN",
-    "message": "Invalid or expired token"
-  }
-}
-```
-
-**404 Not Found**
-```json
-{
-  "error": {
-    "code": "LOBBY_NOT_FOUND",
-    "message": "Lobby does not exist"
-  }
-}
-```
-
 ---
 
 ### Send Private Message
@@ -1310,104 +1205,6 @@ Update character asset.
 * `channelName` *(string)* – The private channel name.
 
 **Request Body:** [ChatMessage Model](#chatmessage-model)
-
-**Success Response (200):**
-```json
-{
-  "senderId": 456,
-  "senderName": "MafiaPlayer",
-  "content": "We should eliminate PlayerOne tonight",
-  "timestamp": "2025-09-10T14:32:15.789Z"
-}
-```
-
-**Error Responses:**
-
-**400 Bad Request - Validation Error**
-```json
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Sender name must be between 2 and 50 characters"
-  }
-}
-```
-
-**401 Unauthorized**
-```json
-{
-  "error": {
-    "code": "INVALID_TOKEN",
-    "message": "Invalid or expired token"
-  }
-}
-```
-
-**403 Forbidden**
-```json
-{
-  "error": {
-    "code": "ACCESS_DENIED",
-    "message": "You do not have access to this private channel"
-  }
-}
-```
-
-**404 Not Found - Lobby**
-```json
-{
-  "error": {
-    "code": "LOBBY_NOT_FOUND",
-    "message": "Lobby does not exist"
-  }
-}
-```
-
-**404 Not Found - Channel**
-```json
-{
-  "error": {
-    "code": "CHANNEL_NOT_FOUND",
-    "message": "Private channel does not exist"
-  }
-}
-```
-
----
-
-### Toggle Global Chat
-
-**Endpoint:** `POST /api/chat/global/{lobbyId}/toggle`
-
-**Description:** Enables/disables (toggles) the global chat in the specified lobby.
-
-**Success Response (200) - Chat Enabled:**
-```json
-{
-  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
-  "isGlobalChatEnabled": true
-}
-```
-
-**Success Response (200) - Chat Disabled:**
-```json
-{
-  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
-  "isGlobalChatEnabled": false
-}
-```
-
-**Error Responses:**
-
-**404 Not Found**
-```json
-{
-  "error": {
-    "code": "LOBBY_NOT_FOUND",
-    "message": "Lobby does not exist"
-  }
-}
-```
 
 ---
 
@@ -1478,7 +1275,7 @@ Update character asset.
 
 ---
 
-## 9. Task Service
+### 9. Task Service
 
 
 
@@ -1550,7 +1347,7 @@ Update task status.
 
 ---
 
-## 10. Voting Service
+### 10. Voting Service
 
 
 
@@ -1564,8 +1361,8 @@ Assign vote to a player.
 ```json
 {
   "gameId": "uuid",
-  "voterId": 12,
-  "targetPlayerId": 13
+  "voterId": "uuid",
+  "targetPlayerId": "uuid"
 }
 ```
 
@@ -1574,8 +1371,8 @@ Assign vote to a player.
 {
   "data": {
     "voteId": "uuid",
-    "voterId": 12,
-    "targetPlayerId": 13,
+    "voterId": "uuid",
+    "targetPlayerId": "uuid",
     "timestamp": "2023-10-01T12:00:00Z"
   }
 }
@@ -1617,11 +1414,11 @@ Get list of votes for a game.
         "dayNumber": 1,
         "votes": [
           {
-            "targetPlayerId": 12,
+            "targetPlayerId": "uuid_player_A",
             "voteCount": 3
           },
           {
-            "targetPlayerId": 13,
+            "targetPlayerId": "uuid_player_B",
             "voteCount": 2
           }
         ],
@@ -1639,54 +1436,6 @@ Get list of votes for a game.
     "error": {
       "code": "GAME_NOT_FOUND",
       "message": "Game does not exist"
-    }
-  }
-  ```
-
-#### POST /votes/elimination
-Send voted-out player to Game Service.
-
-**Headers:**
-- `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "gameId": "uuid",
-  "dayNumber": 1,
-  "votedOutPlayerId": 13
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "data": {
-    "gameId": "uuid",
-    "dayNumber": 1,
-    "votedOutPlayerId": 13,
-    "notifiedAt": "2023-10-01T20:00:00Z"
-  }
-}
-```
-
-**Error Responses:**
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "GAME_NOT_FOUND",
-      "message": "Game does not exist"
-    }
-  }
-  ```
-  
-- **409 Conflict**
-  ```json
-  {
-    "error": {
-      "code": "ALREADY_NOTIFIED",
-      "message": "Elimination has already been sent for this day"
     }
   }
   ```
@@ -1759,28 +1508,19 @@ Tokens expire after 24 hours and must be refreshed by re-authenticating.
 
 
 ### Branch Strategy
+- main: Production-ready code, protected branch
+- development: Integration branch for testing
+- feature/*: Individual feature development
 
-Our repository implements different protection levels based on branch importance:
-- main: Production-ready code, protected branch (create PR and get 2 approvals is required)
-- development: Integration branch for testing (create PR and get 2 approvals is required)
-- feature/*: Individual feature development (no restriction)
 
-### Commit Rules
-
+### Contribution Rules
+- Minimum 2 code reviews required for merge
 - All tests must pass before merge
-- Follow naming conventions: ex. feature/service-functionality
-- Write commit messages starting with lowercase: ex. revise the communcation service enpoints and message formats
-- Use clear and logical commit messages
+- Follow naming conventions: feature/service-functionality
+- Squash commits when merging to main
 - Delete feature branches after successful merge
 
-### PR Practices
-
-- Include clear commit messages 
-- Add mentions from different services when cross-service changes are involved
-- Update documentation when adding new endpoints or changing existing behaviour
-
 ### Code Review Process
-
 1. Create feature branch from development
 2. Implement changes with appropriate tests
 3. Create PR to development branch
@@ -1788,19 +1528,4 @@ Our repository implements different protection levels based on branch importance
 5. Squash and merge after approval
 
 ### Testing Requirements
-
-- Unit test coverage minimum: 80%
-- All automated tests must pass before merge
-- Integration tests required for API changes
-
-### Project Management
-
-Our team uses GitHub Projects for task tracking management:
-
-#### Project Structure
-
-Backlog: All planned features and improvements
-In Progress: Currently active development tasks
-Review: Tasks awaiting code review
-Testing: Features in QA testing phase
-Done: Completed and deployed features
+- Unit test coverage minimum: 75 %
