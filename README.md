@@ -159,7 +159,7 @@ Creates a new user account.
 ```json
 {
   "data": {
-    "id": "uuid"
+    "id": 12
   }
 }
 ```
@@ -194,7 +194,7 @@ Retrieves user profile information.
 ```json
 {
   "data": {
-    "id": "uuid",
+    "id": 12,
     "username": "string",
     "email": "string",
     "currency": {
@@ -267,7 +267,7 @@ Creates a new game lobby.
 {
   "data": {
     "lobbyId": "uuid",
-    "hostId": "uuid",
+    "hostId": 12,
     "maxPlayers": 10,
     "currentPlayers": 1,
     "status": "waiting"
@@ -297,7 +297,7 @@ Join an existing game lobby.
 {
   "data": {
     "lobbyId": "uuid",
-    "playerId": "uuid",
+    "playerId": 12,
     "currentPlayers": 6,
     "maxPlayers": 10
   }
@@ -402,12 +402,12 @@ Get status of each player (alive/not alive).
   "data": {
     "players": [
       {
-        "playerId": "uuid",
+        "playerId": 12,
         "username": "player1",
         "status": "alive"
       },
       {
-        "playerId": "uuid",
+        "playerId": 13,
         "username": "player2",
         "status": "eliminated"
       }
@@ -426,7 +426,7 @@ Assign careers to players.
 ```json
 {
   "data": {
-    "playerId": "uuid",
+    "playerId": 12,
     "career": "teacher",
     "tasks": ["grade_papers", "teach_class"]
   }
@@ -445,7 +445,7 @@ Get game events.
   "data": {
     "events": [
       {
-        "id": "uuid",
+        "id": 12,
         "type": "elimination",
         "message": "Player X was eliminated",
         "timestamp": "2023-10-01T12:00:00Z"
@@ -467,7 +467,7 @@ Get players and their roles.
   "data": {
     "players": [
       {
-        "playerId": "uuid",
+        "playerId": 12,
         "username": "player1",
         "role": "unknown"
       }
@@ -485,7 +485,7 @@ Submit voting results.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": "uuid"
+  "targetPlayerId": 12
 }
 ```
 
@@ -494,7 +494,7 @@ Submit voting results.
 {
   "data": {
     "voteSubmitted": true,
-    "targetPlayerId": "uuid"
+    "targetPlayerId": 12
   }
 }
 ```
@@ -698,9 +698,9 @@ Register night events - which contains who did what and to whom.
 ```json
 {
   "gameId": "uuid",
-  "playerId": "uuid",
+  "playerId": 12,
   "action": "eliminate",
-  "targetPlayerId": "uuid"
+  "targetPlayerId": 13
 }
 ```
 
@@ -801,7 +801,7 @@ Get movement of all players.
   "data": {
     "movements": [
       {
-        "playerId": "uuid",
+        "playerId": 12,
         "locationId": "uuid",
         "timestamp": "2023-10-01T12:00:00Z"
       }
@@ -819,7 +819,7 @@ Movement depending on location and day.
 **Request Body:**
 ```json
 {
-  "playerId": "uuid",
+  "playerId": 12,
   "locationId": "uuid"
 }
 ```
@@ -828,7 +828,7 @@ Movement depending on location and day.
 ```json
 {
   "data": {
-    "playerId": "uuid",
+    "playerId": 12,
     "fromLocationId": "uuid",
     "toLocationId": "uuid",
     "timestamp": "2023-10-01T12:00:00Z"
@@ -857,7 +857,7 @@ Get all movements of a specific player.
 ```json
 {
   "data": {
-    "playerId": "uuid",
+    "playerId": 12,
     "movements": [
       {
         "locationId": "uuid",
@@ -1525,8 +1525,8 @@ Assign vote to a player.
 ```json
 {
   "gameId": "uuid",
-  "voterId": "uuid",
-  "targetPlayerId": "uuid"
+  "voterId": 12,
+  "targetPlayerId": 13
 }
 ```
 
@@ -1535,8 +1535,8 @@ Assign vote to a player.
 {
   "data": {
     "voteId": "uuid",
-    "voterId": "uuid",
-    "targetPlayerId": "uuid",
+    "voterId": 12,
+    "targetPlayerId": 13,
     "timestamp": "2023-10-01T12:00:00Z"
   }
 }
@@ -1578,11 +1578,11 @@ Get list of votes for a game.
         "dayNumber": 1,
         "votes": [
           {
-            "targetPlayerId": "uuid_player_A",
+            "targetPlayerId": 12,
             "voteCount": 3
           },
           {
-            "targetPlayerId": "uuid_player_B",
+            "targetPlayerId": 13,
             "voteCount": 2
           }
         ],
