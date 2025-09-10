@@ -1191,6 +1191,58 @@ Get rumour - player buys a rumour.
 
 **Request Body:** [ChatMessage Model](#chatmessage-model)
 
+**Success Response (200):**
+```json
+{
+  "senderId": 123,
+  "senderName": "PlayerOne",
+  "content": "Hello everyone!",
+  "timestamp": "2025-09-10T14:30:45.123Z"
+}
+```
+
+**Error Responses:**
+
+**400 Bad Request - Validation Error**
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Content must not exceed 200 characters"
+  }
+}
+```
+
+**400 Bad Request - Chat Disabled**
+```json
+{
+  "error": {
+    "code": "CHAT_DISABLED",
+    "message": "Global chat is currently disabled for this lobby"
+  }
+}
+```
+
+**401 Unauthorized**
+```json
+{
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "Invalid or expired token"
+  }
+}
+```
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
 ---
 
 ### Send Private Message
@@ -1206,6 +1258,68 @@ Get rumour - player buys a rumour.
 
 **Request Body:** [ChatMessage Model](#chatmessage-model)
 
+**Success Response (200):**
+```json
+{
+  "senderId": 456,
+  "senderName": "MafiaPlayer",
+  "content": "We should eliminate PlayerOne tonight",
+  "timestamp": "2025-09-10T14:32:15.789Z"
+}
+```
+
+**Error Responses:**
+
+**400 Bad Request - Validation Error**
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Sender name must be between 2 and 50 characters"
+  }
+}
+```
+
+**401 Unauthorized**
+```json
+{
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "Invalid or expired token"
+  }
+}
+```
+
+**403 Forbidden**
+```json
+{
+  "error": {
+    "code": "ACCESS_DENIED",
+    "message": "You do not have access to this private channel"
+  }
+}
+```
+
+**404 Not Found - Lobby**
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
+**404 Not Found - Channel**
+```json
+{
+  "error": {
+    "code": "CHANNEL_NOT_FOUND",
+    "message": "Private channel does not exist"
+  }
+}
+```
+
 ---
 
 ### Toggle Global Chat
@@ -1213,6 +1327,34 @@ Get rumour - player buys a rumour.
 **Endpoint:** `POST /api/chat/global/{lobbyId}/toggle`
 
 **Description:** Enables/disables (toggles) the global chat in the specified lobby.
+
+**Success Response (200) - Chat Enabled:**
+```json
+{
+  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+  "isGlobalChatEnabled": true
+}
+```
+
+**Success Response (200) - Chat Disabled:**
+```json
+{
+  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+  "isGlobalChatEnabled": false
+}
+```
+
+**Error Responses:**
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
 
 ---
 
@@ -1536,4 +1678,4 @@ Tokens expire after 24 hours and must be refreshed by re-authenticating.
 5. Squash and merge after approval
 
 ### Testing Requirements
-- Unit test coverage minimum: 75 %
+- Unit test coverage minimum: 80 %
