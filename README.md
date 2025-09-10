@@ -75,7 +75,7 @@ Arrows between services represent internal API calls used to validate actions, s
 | User Management, Game    | Alexandrina G. | Python   | FastAPI        | PostgreSQL            |
 | Shop, Roleplay           | Alexander C.   | C#       | ASP.NET Core   | PostgreSQL            |
 | Town, Character          | Dmitrii C.     | Kotlin   | Spring Boot    | PostgreSQL, Redis     |
-| Rumors, Communication    | Dmitrii B.     | C#       | ASP.NET Core    | PostgreSQL, Websockets |
+| Rumors, Communication    | Dmitrii B.     | C#       | ASP.NET Core    | PostgreSQL |
 | Task, Voting             | Irina N.       | Python   | FastAPI         | PostgreSQL            |
 
 
@@ -1126,8 +1126,11 @@ Update character asset.
 
 
 
-#### POST /purchase
-Get rumour - player buys a rumour.
+### Buy a rumour
+
+**Endpoint:** `POST /api/purchase-rumour`
+
+**Description:** Buys a random rumour in the specified lobby.
 
 **Headers:**
 - `Authorization: Bearer <token>`
@@ -1135,22 +1138,22 @@ Get rumour - player buys a rumour.
 **Request Body:**
 ```json
 {
+  "lobbyId": "lobby_id",
   "rumourType": "player_role",
-  "targetPlayerId": "uuid"
+  "targetPlayerId": "player_id"
 }
 ```
 
 **Success Response (200):**
 ```json
 {
-  "data": {
-    "rumour": "Player X was seen near the victim's house last night"
-  }
+  "rumour": "Player X was seen near the victim's house last night"
 }
 ```
 
 **Error Responses:**
-- **400 Bad Request**
+
+**400 Bad Request**
   ```json
   {
     "error": {
@@ -1159,7 +1162,8 @@ Get rumour - player buys a rumour.
     }
   }
   ```
-- **404 Not Found**
+
+**404 Not Found**
   ```json
   {
     "error": {
@@ -1168,6 +1172,16 @@ Get rumour - player buys a rumour.
     }
   }
   ```
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
 
 ---
 
