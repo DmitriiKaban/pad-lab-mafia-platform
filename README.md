@@ -75,7 +75,7 @@ Arrows between services represent internal API calls used to validate actions, s
 | User Management, Game    | Alexandrina G. | Python   | FastAPI        | PostgreSQL            |
 | Shop, Roleplay           | Alexander C.   | C#       | ASP.NET Core   | PostgreSQL            |
 | Town, Character          | Dmitrii C.     | Kotlin   | Spring Boot    | PostgreSQL, Redis     |
-| Rumors, Communication    | Dmitrii B.     | C#       | ASP.NET Core    | PostgreSQL, Websockets |
+| Rumors, Communication    | Dmitrii B.     | C#       | ASP.NET Core    | PostgreSQL |
 | Task, Voting             | Irina N.       | Python   | FastAPI         | PostgreSQL            |
 
 
@@ -159,7 +159,7 @@ Creates a new user account.
 ```json
 {
   "data": {
-    "id": "uuid"
+    "id": 12
   }
 }
 ```
@@ -194,7 +194,7 @@ Retrieves user profile information.
 ```json
 {
   "data": {
-    "id": "uuid",
+    "id": 12,
     "username": "string",
     "email": "string",
     "currency": {
@@ -267,7 +267,7 @@ Creates a new game lobby.
 {
   "data": {
     "lobbyId": "uuid",
-    "hostId": "uuid",
+    "hostId": 12,
     "maxPlayers": 10,
     "currentPlayers": 1,
     "status": "waiting"
@@ -297,7 +297,7 @@ Join an existing game lobby.
 {
   "data": {
     "lobbyId": "uuid",
-    "playerId": "uuid",
+    "playerId": 12,
     "currentPlayers": 6,
     "maxPlayers": 10
   }
@@ -402,12 +402,12 @@ Get status of each player (alive/not alive).
   "data": {
     "players": [
       {
-        "playerId": "uuid",
+        "playerId": 12,
         "username": "player1",
         "status": "alive"
       },
       {
-        "playerId": "uuid",
+        "playerId": 13,
         "username": "player2",
         "status": "eliminated"
       }
@@ -426,7 +426,7 @@ Assign careers to players.
 ```json
 {
   "data": {
-    "playerId": "uuid",
+    "playerId": 12,
     "career": "teacher",
     "tasks": ["grade_papers", "teach_class"]
   }
@@ -445,7 +445,7 @@ Get game events.
   "data": {
     "events": [
       {
-        "id": "uuid",
+        "id": 12,
         "type": "elimination",
         "message": "Player X was eliminated",
         "timestamp": "2023-10-01T12:00:00Z"
@@ -467,7 +467,7 @@ Get players and their roles.
   "data": {
     "players": [
       {
-        "playerId": "uuid",
+        "playerId": 12,
         "username": "player1",
         "role": "unknown"
       }
@@ -485,7 +485,7 @@ Submit voting results.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": "uuid"
+  "targetPlayerId": 12
 }
 ```
 
@@ -494,7 +494,7 @@ Submit voting results.
 {
   "data": {
     "voteSubmitted": true,
-    "targetPlayerId": "uuid"
+    "targetPlayerId": 12
   }
 }
 ```
@@ -698,9 +698,9 @@ Register night events - which contains who did what and to whom.
 ```json
 {
   "gameId": "uuid",
-  "playerId": "uuid",
+  "playerId": 12,
   "action": "eliminate",
-  "targetPlayerId": "uuid"
+  "targetPlayerId": 13
 }
 ```
 
@@ -801,7 +801,7 @@ Get movement of all players.
   "data": {
     "movements": [
       {
-        "playerId": "uuid",
+        "playerId": 12,
         "locationId": "uuid",
         "timestamp": "2023-10-01T12:00:00Z"
       }
@@ -819,7 +819,7 @@ Movement depending on location and day.
 **Request Body:**
 ```json
 {
-  "playerId": "uuid",
+  "playerId": 12,
   "locationId": "uuid"
 }
 ```
@@ -828,7 +828,7 @@ Movement depending on location and day.
 ```json
 {
   "data": {
-    "playerId": "uuid",
+    "playerId": 12,
     "fromLocationId": "uuid",
     "toLocationId": "uuid",
     "timestamp": "2023-10-01T12:00:00Z"
@@ -857,7 +857,7 @@ Get all movements of a specific player.
 ```json
 {
   "data": {
-    "playerId": "uuid",
+    "playerId": 12,
     "movements": [
       {
         "locationId": "uuid",
@@ -1126,8 +1126,11 @@ Update character asset.
 
 
 
-#### POST /purchase
-Get rumour - player buys a rumour.
+### Buy a rumour
+
+**Endpoint:** `POST /api/purchase-rumour`
+
+**Description:** Buys a random rumour in the specified lobby.
 
 **Headers:**
 - `Authorization: Bearer <token>`
@@ -1135,22 +1138,22 @@ Get rumour - player buys a rumour.
 **Request Body:**
 ```json
 {
+  "lobbyId": "lobby_id",
   "rumourType": "player_role",
-  "targetPlayerId": "uuid"
+  "targetPlayerId": "player_id"
 }
 ```
 
 **Success Response (200):**
 ```json
 {
-  "data": {
-    "rumour": "Player X was seen near the victim's house last night"
-  }
+  "rumour": "Player X was seen near the victim's house last night"
 }
 ```
 
 **Error Responses:**
-- **400 Bad Request**
+
+**400 Bad Request**
   ```json
   {
     "error": {
@@ -1159,7 +1162,8 @@ Get rumour - player buys a rumour.
     }
   }
   ```
-- **404 Not Found**
+
+**404 Not Found**
   ```json
   {
     "error": {
@@ -1168,6 +1172,16 @@ Get rumour - player buys a rumour.
     }
   }
   ```
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
 
 ---
 
@@ -1191,6 +1205,58 @@ Get rumour - player buys a rumour.
 
 **Request Body:** [ChatMessage Model](#chatmessage-model)
 
+**Success Response (200):**
+```json
+{
+  "senderId": 123,
+  "senderName": "PlayerOne",
+  "content": "Hello everyone!",
+  "timestamp": "2025-09-10T14:30:45.123Z"
+}
+```
+
+**Error Responses:**
+
+**400 Bad Request - Validation Error**
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Content must not exceed 200 characters"
+  }
+}
+```
+
+**400 Bad Request - Chat Disabled**
+```json
+{
+  "error": {
+    "code": "CHAT_DISABLED",
+    "message": "Global chat is currently disabled for this lobby"
+  }
+}
+```
+
+**401 Unauthorized**
+```json
+{
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "Invalid or expired token"
+  }
+}
+```
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
 ---
 
 ### Send Private Message
@@ -1206,6 +1272,68 @@ Get rumour - player buys a rumour.
 
 **Request Body:** [ChatMessage Model](#chatmessage-model)
 
+**Success Response (200):**
+```json
+{
+  "senderId": 456,
+  "senderName": "MafiaPlayer",
+  "content": "We should eliminate PlayerOne tonight",
+  "timestamp": "2025-09-10T14:32:15.789Z"
+}
+```
+
+**Error Responses:**
+
+**400 Bad Request - Validation Error**
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Sender name must be between 2 and 50 characters"
+  }
+}
+```
+
+**401 Unauthorized**
+```json
+{
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "Invalid or expired token"
+  }
+}
+```
+
+**403 Forbidden**
+```json
+{
+  "error": {
+    "code": "ACCESS_DENIED",
+    "message": "You do not have access to this private channel"
+  }
+}
+```
+
+**404 Not Found - Lobby**
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
+**404 Not Found - Channel**
+```json
+{
+  "error": {
+    "code": "CHANNEL_NOT_FOUND",
+    "message": "Private channel does not exist"
+  }
+}
+```
+
 ---
 
 ### Toggle Global Chat
@@ -1213,6 +1341,34 @@ Get rumour - player buys a rumour.
 **Endpoint:** `POST /api/chat/global/{lobbyId}/toggle`
 
 **Description:** Enables/disables (toggles) the global chat in the specified lobby.
+
+**Success Response (200) - Chat Enabled:**
+```json
+{
+  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+  "isGlobalChatEnabled": true
+}
+```
+
+**Success Response (200) - Chat Disabled:**
+```json
+{
+  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+  "isGlobalChatEnabled": false
+}
+```
+
+**Error Responses:**
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
 
 ---
 
@@ -1369,8 +1525,8 @@ Assign vote to a player.
 ```json
 {
   "gameId": "uuid",
-  "voterId": "uuid",
-  "targetPlayerId": "uuid"
+  "voterId": 12,
+  "targetPlayerId": 13
 }
 ```
 
@@ -1379,8 +1535,8 @@ Assign vote to a player.
 {
   "data": {
     "voteId": "uuid",
-    "voterId": "uuid",
-    "targetPlayerId": "uuid",
+    "voterId": 12,
+    "targetPlayerId": 13,
     "timestamp": "2023-10-01T12:00:00Z"
   }
 }
@@ -1422,11 +1578,11 @@ Get list of votes for a game.
         "dayNumber": 1,
         "votes": [
           {
-            "targetPlayerId": "uuid_player_A",
+            "targetPlayerId": 12,
             "voteCount": 3
           },
           {
-            "targetPlayerId": "uuid_player_B",
+            "targetPlayerId": 13,
             "voteCount": 2
           }
         ],
@@ -1536,4 +1692,4 @@ Tokens expire after 24 hours and must be refreshed by re-authenticating.
 5. Squash and merge after approval
 
 ### Testing Requirements
-- Unit test coverage minimum: 75 %
+- Unit test coverage minimum: 80 %
