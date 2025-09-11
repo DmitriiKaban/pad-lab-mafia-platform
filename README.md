@@ -118,7 +118,8 @@ Authenticates user and returns JWT token.
 ```json
 {
   "username": "string",
-  "password": "string"
+  "password": "string",
+  "deviceInfo": "object",
 }
 ```
 
@@ -151,7 +152,10 @@ Creates a new user account.
 {
   "username": "string",
   "email": "string",
-  "password": "string"
+  "password": "string",
+  "identification": "string",
+  "deviceInfo": "object",
+  "location": "string"
 }
 ```
 
@@ -159,7 +163,8 @@ Creates a new user account.
 ```json
 {
   "data": {
-    "id": "uuid"
+    "id": "uuid",
+    "username": "string" 
   }
 }
 ```
@@ -184,7 +189,7 @@ Creates a new user account.
   }
   ```
 
-#### GET /profile
+#### GET /profile/{id}
 Retrieves user profile information.
 
 **Headers:**
@@ -216,18 +221,29 @@ Retrieves user profile information.
   }
   ```
 
-#### GET /currency
-Retrieves user's current currency balance.
+#### PUT /currency/{id}
+Adds, substracts or sets a user's currency balance.
 
 **Headers:**
 - `Authorization: Bearer <token>`
 
+**Request Body:**
+```json
+{
+  "currency": "diamonds|coins",
+  "amount": "integer",
+  "operation": "add|subtract|set"
+}
+```
+
 **Success Response (200):**
 ```json
 {
-  "data": {
-    "diamonds": 50,
-    "coins": 250
+ "data": {
+    "id": "uuid",
+    "newBalance": "integer",
+    "transactionId": "uuid",
+    "currency": "diamonds|coins",
   }
 }
 ```
@@ -258,7 +274,9 @@ Creates a new game lobby.
 **Request Body:**
 ```json
 {
-  "maxPlayers": 10
+  "hostId": "uuid",
+  "lobbyName": "string",
+  "maxPlayers": "integer"
 }
 ```
 
@@ -266,11 +284,11 @@ Creates a new game lobby.
 ```json
 {
   "data": {
+    "gameId": "uuid",
     "lobbyId": "uuid",
     "hostId": "uuid",
-    "maxPlayers": 10,
-    "currentPlayers": 1,
-    "status": "waiting"
+    "status": "waiting_for_players",
+    "joinCode": "string"
   }
 }
 ```
@@ -292,14 +310,20 @@ Join an existing game lobby.
 **Headers:**
 - `Authorization: Bearer <token>`
 
+**Request Body:**
+```json
+{
+  "id": "uuid"
+}
+```
+
 **Success Response (200):**
 ```json
 {
   "data": {
     "lobbyId": "uuid",
-    "playerId": "uuid",
-    "currentPlayers": 6,
-    "maxPlayers": 10
+    "currentPlayers": "integer",
+    "maxPlayers": "integer"
   }
 }
 ```
@@ -330,12 +354,20 @@ Start the game in the lobby.
 **Headers:**
 - `Authorization: Bearer <token>`
 
+**Request Body:**
+```json
+{
+  "hostId": "uuid"
+}
+```
+
 **Success Response (200):**
 ```json
 {
   "data": {
     "gameId": "uuid",
-    "status": "started"
+    "status": "started",
+    "players": "array"
   }
 }
 ```
@@ -371,9 +403,9 @@ Get current game state.
 {
   "data": {
     "gameId": "uuid",
-    "phase": "day",
-    "dayNumber": 2,
-    "playersAlive": 7,
+    "phase": "day|night|voting|ended",
+    "dayNumber": "number",
+    "playersAlive": "array",
     "totalPlayers": 10
   }
 }
@@ -422,6 +454,13 @@ Assign careers to players.
 **Headers:**
 - `Authorization: Bearer <token>`
 
+**Request Body:**
+```json
+{
+  "id": "uuid"
+}
+```
+
 **Success Response (200):**
 ```json
 {
@@ -469,7 +508,7 @@ Get players and their roles.
       {
         "playerId": "uuid",
         "username": "player1",
-        "role": "unknown"
+        "role": "mafia|doctor|investigator|villager"
       }
     ]
   }
