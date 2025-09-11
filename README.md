@@ -1672,19 +1672,29 @@ Tokens expire after 24 hours and must be refreshed by re-authenticating.
 
 
 ### Branch Strategy
-- main: Production-ready code, protected branch
-- development: Integration branch for testing
-- feature/*: Individual feature development
 
+Our repository implements different protection levels based on branch importance:
+- main: Production-ready code, protected branch (create PR and get 2 approvals is required)
+- development: Integration branch for testing (create PR and get 2 approvals is required)
+- feature/*: Individual feature development (no restriction)
 
-### Contribution Rules
-- Minimum 2 code reviews required for merge
+### Commit Rules
+
 - All tests must pass before merge
-- Follow naming conventions: feature/service-functionality
-- Squash commits when merging to main
+- Follow naming conventions: ex. feature/service-functionality
+- Write commit messages starting with lowercase: ex. revise the communcation service enpoints and message formats
+- Use clear and logical commit messages
 - Delete feature branches after successful merge
 
+### PR Practices
+
+- Keep PRs focused and reasonably sized (< 400 lines of code changes when possible)
+- Include clear commit messages 
+- Add mentions from different services when cross-service changes are involved
+- Update documentation when adding new endpoints or changing existing behaviour
+
 ### Code Review Process
+
 1. Create feature branch from development
 2. Implement changes with appropriate tests
 3. Create PR to development branch
@@ -1692,4 +1702,19 @@ Tokens expire after 24 hours and must be refreshed by re-authenticating.
 5. Squash and merge after approval
 
 ### Testing Requirements
-- Unit test coverage minimum: 80 %
+
+- Unit test coverage minimum: 80%
+- All automated tests must pass before merge
+- Integration tests required for API changes
+
+### Project Management
+
+Our team uses GitHub Projects for task tracking management:
+
+#### Project Structure
+
+Backlog: All planned features and improvements
+In Progress: Currently active development tasks
+Review: Tasks awaiting code review
+Testing: Features in QA testing phase
+Done: Completed and deployed features
