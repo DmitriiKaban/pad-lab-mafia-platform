@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      # --------------------------------------------------------------------------
+      - name: Setup Java for Kotlin
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Run tests for Town Service
+        run: ./gradlew test
+        working-directory: ../pad-lab-town-service
+
+      - name: Run tests for Character Service
+        run: ./gradlew test
+        working-directory: ../pad-lab-character-service
+
+      # --------------------------------------------------------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies for Python Microservices
+        run: pip install pytest
+
+      - name: Run tests for Voting Service
+        run: pytest
+        working-directory: ../voting-service
+
+      - name: Run tests for Task Service
+        run: pytest
+        working-directory: ../task-service
+
+      - name: Run tests for User management Service
+        run: pytest
+        working-directory: ../user-management-service
+
+      - name: Run tests for Game Service
+        run: pytest
+        working-directory: ../game-service
+
+      # --------------------------------------------------------------------------
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0'
+
+      - name: Restore dependencies for C# Microservices
+        run: dotnet restore
+        working-directory: ..
+
+      - name: Run tests for Communication Service
+        run: dotnet test
+        working-directory: ../communication-service
+
+      - name: Run tests for Rumour Service
+        run: dotnet test
+        working-directory: ../rumours-service
+
+      - name: Run tests for Shop Service
+        run: dotnet test
+        working-directory: ../shop-service
+
+      - name: Run tests for Roleplay Service
+        run: dotnet test
+        working-directory: ../roleplay-service

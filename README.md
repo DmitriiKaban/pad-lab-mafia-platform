@@ -75,7 +75,7 @@ Arrows between services represent internal API calls used to validate actions, s
 | User Management, Game    | Alexandrina G. | Python   | FastAPI        | PostgreSQL            |
 | Shop, Roleplay           | Alexander C.   | C#       | ASP.NET Core   | PostgreSQL            |
 | Town, Character          | Dmitrii C.     | Kotlin   | Spring Boot    | PostgreSQL, Redis     |
-| Rumors, Communication    | Dmitrii B.     | C#       | ASP.NET Core    | PostgreSQL, Websockets |
+| Rumors, Communication    | Dmitrii B.     | C#       | ASP.NET Core    | PostgreSQL |
 | Task, Voting             | Irina N.       | Python   | FastAPI         | PostgreSQL            |
 
 
@@ -107,7 +107,7 @@ This section defines our data management strategy and the specific API endpoints
 All request and response bodies are in **JSON** format.
 
 
-### 1. User Management Service
+## 1. User Management Service
 
 
 
@@ -159,7 +159,7 @@ Creates a new user account.
 ```json
 {
   "data": {
-    "id": "uuid"
+    "id": 12
   }
 }
 ```
@@ -194,7 +194,7 @@ Retrieves user profile information.
 ```json
 {
   "data": {
-    "id": "uuid",
+    "id": 12,
     "username": "string",
     "email": "string",
     "currency": {
@@ -245,7 +245,7 @@ Retrieves user's current currency balance.
 
 ---
 
-### 2. Game Service
+## 2. Game Service
 
 
 
@@ -267,7 +267,7 @@ Creates a new game lobby.
 {
   "data": {
     "lobbyId": "uuid",
-    "hostId": "uuid",
+    "hostId": 12,
     "maxPlayers": 10,
     "currentPlayers": 1,
     "status": "waiting"
@@ -297,7 +297,7 @@ Join an existing game lobby.
 {
   "data": {
     "lobbyId": "uuid",
-    "playerId": "uuid",
+    "playerId": 12,
     "currentPlayers": 6,
     "maxPlayers": 10
   }
@@ -402,12 +402,12 @@ Get status of each player (alive/not alive).
   "data": {
     "players": [
       {
-        "playerId": "uuid",
+        "playerId": 12,
         "username": "player1",
         "status": "alive"
       },
       {
-        "playerId": "uuid",
+        "playerId": 13,
         "username": "player2",
         "status": "eliminated"
       }
@@ -426,7 +426,7 @@ Assign careers to players.
 ```json
 {
   "data": {
-    "playerId": "uuid",
+    "playerId": 12,
     "career": "teacher",
     "tasks": ["grade_papers", "teach_class"]
   }
@@ -445,7 +445,7 @@ Get game events.
   "data": {
     "events": [
       {
-        "id": "uuid",
+        "id": 12,
         "type": "elimination",
         "message": "Player X was eliminated",
         "timestamp": "2023-10-01T12:00:00Z"
@@ -467,7 +467,7 @@ Get players and their roles.
   "data": {
     "players": [
       {
-        "playerId": "uuid",
+        "playerId": 12,
         "username": "player1",
         "role": "unknown"
       }
@@ -485,7 +485,7 @@ Submit voting results.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": "uuid"
+  "targetPlayerId": 12
 }
 ```
 
@@ -494,7 +494,7 @@ Submit voting results.
 {
   "data": {
     "voteSubmitted": true,
-    "targetPlayerId": "uuid"
+    "targetPlayerId": 12
   }
 }
 ```
@@ -530,7 +530,7 @@ Submit voting results.
 
 ---
 
-### 3. Shop Service
+## 3. Shop Service
 
 
 
@@ -647,7 +647,7 @@ List available items in the shop.
 
 ---
 
-### 4. Roleplay Service
+## 4. Roleplay Service
 
 
 
@@ -698,9 +698,9 @@ Register night events - which contains who did what and to whom.
 ```json
 {
   "gameId": "uuid",
-  "playerId": "uuid",
+  "playerId": 12,
   "action": "eliminate",
-  "targetPlayerId": "uuid"
+  "targetPlayerId": 13
 }
 ```
 
@@ -736,7 +736,7 @@ Register night events - which contains who did what and to whom.
 
 ---
 
-### 5. Town Service
+## 5. Town Service
 
 
 
@@ -801,7 +801,7 @@ Get movement of all players.
   "data": {
     "movements": [
       {
-        "playerId": "uuid",
+        "playerId": 12,
         "locationId": "uuid",
         "timestamp": "2023-10-01T12:00:00Z"
       }
@@ -819,7 +819,7 @@ Movement depending on location and day.
 **Request Body:**
 ```json
 {
-  "playerId": "uuid",
+  "playerId": 12,
   "locationId": "uuid"
 }
 ```
@@ -828,7 +828,7 @@ Movement depending on location and day.
 ```json
 {
   "data": {
-    "playerId": "uuid",
+    "playerId": 12,
     "fromLocationId": "uuid",
     "toLocationId": "uuid",
     "timestamp": "2023-10-01T12:00:00Z"
@@ -857,7 +857,7 @@ Get all movements of a specific player.
 ```json
 {
   "data": {
-    "playerId": "uuid",
+    "playerId": 12,
     "movements": [
       {
         "locationId": "uuid",
@@ -882,7 +882,7 @@ Get all movements of a specific player.
 
 ---
 
-### 6. Character Service
+## 6. Character Service
 
 
 
@@ -1122,12 +1122,15 @@ Update character asset.
 
 ---
 
-### 7. Rumours Service
+## 7. Rumours Service
 
 
 
-#### POST /purchase
-Get rumour - player buys a rumour.
+### Buy a rumour
+
+**Endpoint:** `POST /api/purchase-rumour`
+
+**Description:** Buys a random rumour in the specified lobby.
 
 **Headers:**
 - `Authorization: Bearer <token>`
@@ -1135,22 +1138,22 @@ Get rumour - player buys a rumour.
 **Request Body:**
 ```json
 {
+  "lobbyId": "lobby_id",
   "rumourType": "player_role",
-  "targetPlayerId": "uuid"
+  "targetPlayerId": "player_id"
 }
 ```
 
 **Success Response (200):**
 ```json
 {
-  "data": {
-    "rumour": "Player X was seen near the victim's house last night"
-  }
+  "rumour": "Player X was seen near the victim's house last night"
 }
 ```
 
 **Error Responses:**
-- **400 Bad Request**
+
+**400 Bad Request**
   ```json
   {
     "error": {
@@ -1159,7 +1162,8 @@ Get rumour - player buys a rumour.
     }
   }
   ```
-- **404 Not Found**
+
+**404 Not Found**
   ```json
   {
     "error": {
@@ -1169,46 +1173,273 @@ Get rumour - player buys a rumour.
   }
   ```
 
----
-
-### 8. Communication Service
-
-
-
-**Technology:** WebSockets
-
-### WS `/api/app/chat/global/{lobbyId}`
-
-Used for sending messages to the global chat in the specified lobby.
-
-### WS `/api/topic/chat/global/{lobbyId}`
-
-Used for subscription to the incoming global chat messages in the specified lobby.
-
-### WS `/api/app/chat/private/{channelName}/{lobbyId}`
-
-Used for sending messages to a private chat with the specified name in the specified lobby.
-
-### WS `/api/topic/chat/private/{channelName}/{lobbyId}`
-
-Used for subscription to the incoming messages from a private chat with the specified name in the specified lobby.
-
-**Message Format (Client → Server):**
-
+**404 Not Found**
 ```json
-{ "content": "string" }
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
 ```
-
-**Message Format (Server → Client):**
-
-```json
-{ "sender": "string", "content": "string", "timestamp": "datetime" }
-```
-
 
 ---
 
-### 9. Task Service
+## 8. Communication Service
+
+
+
+## API Reference
+
+---
+
+### Send Global Message
+
+**Endpoint:** `POST /api/chat/global/{lobbyId}/send-message`
+
+**Description:** Sends a message to the specified global chat in the specified lobby.
+
+**URL Parameters:**
+
+* `lobbyId` *(string)* – Unique lobby identifier.
+
+**Request Body:** [ChatMessage Model](#chatmessage-model)
+
+**Success Response (200):**
+```json
+{
+  "senderId": 123,
+  "senderName": "PlayerOne",
+  "content": "Hello everyone!",
+  "timestamp": "2025-09-10T14:30:45.123Z"
+}
+```
+
+**Error Responses:**
+
+**400 Bad Request - Validation Error**
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Content must not exceed 200 characters"
+  }
+}
+```
+
+**400 Bad Request - Chat Disabled**
+```json
+{
+  "error": {
+    "code": "CHAT_DISABLED",
+    "message": "Global chat is currently disabled for this lobby"
+  }
+}
+```
+
+**401 Unauthorized**
+```json
+{
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "Invalid or expired token"
+  }
+}
+```
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
+---
+
+### Send Private Message
+
+**Endpoint:** `POST /api/chat/private/{lobbyId}/{channelName}/send-message`
+
+**Description:** Sends a message to all clients in the specified private channel inside the specified lobby.
+
+**URL Parameters:**
+
+* `lobbyId` *(string)* – The lobby identifier.
+* `channelName` *(string)* – The private channel name.
+
+**Request Body:** [ChatMessage Model](#chatmessage-model)
+
+**Success Response (200):**
+```json
+{
+  "senderId": 456,
+  "senderName": "MafiaPlayer",
+  "content": "We should eliminate PlayerOne tonight",
+  "timestamp": "2025-09-10T14:32:15.789Z"
+}
+```
+
+**Error Responses:**
+
+**400 Bad Request - Validation Error**
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Sender name must be between 2 and 50 characters"
+  }
+}
+```
+
+**401 Unauthorized**
+```json
+{
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "Invalid or expired token"
+  }
+}
+```
+
+**403 Forbidden**
+```json
+{
+  "error": {
+    "code": "ACCESS_DENIED",
+    "message": "You do not have access to this private channel"
+  }
+}
+```
+
+**404 Not Found - Lobby**
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
+**404 Not Found - Channel**
+```json
+{
+  "error": {
+    "code": "CHANNEL_NOT_FOUND",
+    "message": "Private channel does not exist"
+  }
+}
+```
+
+---
+
+### Toggle Global Chat
+
+**Endpoint:** `POST /api/chat/global/{lobbyId}/toggle`
+
+**Description:** Enables/disables (toggles) the global chat in the specified lobby.
+
+**Success Response (200) - Chat Enabled:**
+```json
+{
+  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+  "isGlobalChatEnabled": true
+}
+```
+
+**Success Response (200) - Chat Disabled:**
+```json
+{
+  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+  "isGlobalChatEnabled": false
+}
+```
+
+**Error Responses:**
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
+---
+
+## SignalR Hub Reference
+
+### Server Methods (Client → Server)
+
+| Method                                                                        | Description                                                                            |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `JoinGlobalChat(string lobbyId, long userId)`                                             | Adds the specified user to the global chat in the specified lobby.                                                     |
+| `LeaveGlobalChat(string lobbyId, long userId)`                                            | Removes the specified user from the global chat in the specified lobby.                                                |
+| `JoinPrivateChannel(string lobbyId, string channelName, long userId)`                      | Adds the specified user to the specified private channel.                                                  |
+| `LeavePrivateChannel(string lobbyId, string channelName, long userId)`                     | Removes the speicified user from the specified private channel.                                             |
+| `SendGlobalMessage(string lobbyId, ChatMessage message)`                      | Broadcasts a message to the global chat in the specified lobby. Throws `HubException` on validation errors.    |
+| `SendPrivateMessage(string channelName, string lobbyId, ChatMessage message)` | Broadcasts a message to the specified private channel in the specified lobby. Throws `HubException` on validation errors. |
+
+---
+
+### Client Methods (Server → Client)
+
+| Method                                         | Description                                                |
+| ---------------------------------------------- | ---------------------------------------------------------- |
+| `ReceiveGlobalMessage(ChatResponse response)`  | Triggered when a new message arrives in a global chat.    |
+| `ReceivePrivateMessage(ChatResponse response)` | Triggered when a new message arrives in a private channel. |
+
+---
+
+## Data Models
+
+### ChatMessage Model
+
+| Field       | Type   | Description                          | Validation Rules |
+|-------------|--------|--------------------------------------|------------------|
+| `senderId`  | long   | The unique ID of the sender         | Required, must be ≥ 0 |
+| `senderName`| string | The display name of the sender      | Required, 2–50 characters |
+| `content`   | string | The text content of the message     | Required, not empty, max 200 characters |
+
+**Example:**
+
+```json
+{
+  "senderId": 123,
+  "senderName": "TestUser",
+  "content": "Hello, world!"
+}
+```
+
+---
+
+### ChatResponse Model
+
+| Field       | Type     | Description |
+|-------------|----------|-------------|
+| `senderId`  | long     | ID of the sender |
+| `senderName`| string   | Name of the sender |
+| `content`   | string   | Message content |
+| `timestamp` | DateTime | UTC timestamp from server |
+
+**Example:**
+```json
+{
+  "senderId": 123,
+  "senderName": "TestUser",
+  "content": "Hello, world!",
+  "timestamp": "2025-09-09T20:30:00.123Z"
+}
+```
+
+---
+
+## 9. Task Service
 
 
 
@@ -1280,7 +1511,7 @@ Update task status.
 
 ---
 
-### 10. Voting Service
+## 10. Voting Service
 
 
 
@@ -1294,8 +1525,8 @@ Assign vote to a player.
 ```json
 {
   "gameId": "uuid",
-  "voterId": "uuid",
-  "targetPlayerId": "uuid"
+  "voterId": 12,
+  "targetPlayerId": 13
 }
 ```
 
@@ -1304,8 +1535,8 @@ Assign vote to a player.
 {
   "data": {
     "voteId": "uuid",
-    "voterId": "uuid",
-    "targetPlayerId": "uuid",
+    "voterId": 12,
+    "targetPlayerId": 13,
     "timestamp": "2023-10-01T12:00:00Z"
   }
 }
@@ -1347,11 +1578,11 @@ Get list of votes for a game.
         "dayNumber": 1,
         "votes": [
           {
-            "targetPlayerId": "uuid_player_A",
+            "targetPlayerId": 12,
             "voteCount": 3
           },
           {
-            "targetPlayerId": "uuid_player_B",
+            "targetPlayerId": 13,
             "voteCount": 2
           }
         ],
@@ -1441,19 +1672,28 @@ Tokens expire after 24 hours and must be refreshed by re-authenticating.
 
 
 ### Branch Strategy
-- main: Production-ready code, protected branch
-- development: Integration branch for testing
-- feature/*: Individual feature development
 
+Our repository implements different protection levels based on branch importance:
+- main: Production-ready code, protected branch (create PR and get 2 approvals is required)
+- development: Integration branch for testing (create PR and get 2 approvals is required)
+- feature/*: Individual feature development (no restriction)
 
-### Contribution Rules
-- Minimum 2 code reviews required for merge
+### Commit Rules
+
 - All tests must pass before merge
-- Follow naming conventions: feature/service-functionality
-- Squash commits when merging to main
+- Follow naming conventions: ex. feature/service-functionality
+- Write commit messages starting with lowercase: ex. revise the communcation service enpoints and message formats
+- Use clear and logical commit messages
 - Delete feature branches after successful merge
 
+### PR Practices
+
+- Include clear commit messages 
+- Add mentions from different services when cross-service changes are involved
+- Update documentation when adding new endpoints or changing existing behaviour
+
 ### Code Review Process
+
 1. Create feature branch from development
 2. Implement changes with appropriate tests
 3. Create PR to development branch
@@ -1461,4 +1701,19 @@ Tokens expire after 24 hours and must be refreshed by re-authenticating.
 5. Squash and merge after approval
 
 ### Testing Requirements
-- Unit test coverage minimum: 75 %
+
+- Unit test coverage minimum: 80%
+- All automated tests must pass before merge
+- Integration tests required for API changes
+
+### Project Management
+
+Our team uses GitHub Projects for task tracking management:
+
+#### Project Structure
+
+Backlog: All planned features and improvements
+In Progress: Currently active development tasks
+Review: Tasks awaiting code review
+Testing: Features in QA testing phase
+Done: Completed and deployed features
