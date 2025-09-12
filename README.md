@@ -110,7 +110,6 @@ All request and response bodies are in **JSON** format.
 ## 1. User Management Service
 
 
-
 #### POST /login
 Authenticates user and returns JWT token.
 
@@ -118,7 +117,8 @@ Authenticates user and returns JWT token.
 ```json
 {
   "username": "string",
-  "password": "string"
+  "password": "string",
+  "deviceInfo": "object",
 }
 ```
 
@@ -151,7 +151,10 @@ Creates a new user account.
 {
   "username": "string",
   "email": "string",
-  "password": "string"
+  "password": "string",
+  "identification": "string",
+  "deviceInfo": "object",
+  "location": "string"
 }
 ```
 
@@ -159,7 +162,8 @@ Creates a new user account.
 ```json
 {
   "data": {
-    "id": 12
+    "id": "uuid",
+    "username": "string" 
   }
 }
 ```
@@ -184,7 +188,7 @@ Creates a new user account.
   }
   ```
 
-#### GET /profile
+#### GET /profile/{id}
 Retrieves user profile information.
 
 **Headers:**
@@ -194,7 +198,7 @@ Retrieves user profile information.
 ```json
 {
   "data": {
-    "id": 12,
+    "id": "uuid",
     "username": "string",
     "email": "string",
     "currency": {
@@ -216,18 +220,29 @@ Retrieves user profile information.
   }
   ```
 
-#### GET /currency
-Retrieves user's current currency balance.
+#### PUT /currency/{id}
+Adds, substracts or sets a user's currency balance.
 
 **Headers:**
 - `Authorization: Bearer <token>`
 
+**Request Body:**
+```json
+{
+  "currency": "diamonds|coins",
+  "amount": "integer",
+  "operation": "add|subtract|set"
+}
+```
+
 **Success Response (200):**
 ```json
 {
-  "data": {
-    "diamonds": 50,
-    "coins": 250
+ "data": {
+    "id": "uuid",
+    "newBalance": "integer",
+    "transactionId": "uuid",
+    "currency": "diamonds|coins",
   }
 }
 ```
@@ -245,6 +260,7 @@ Retrieves user's current currency balance.
 
 ---
 
+
 ## 2. Game Service
 
 
@@ -258,7 +274,9 @@ Creates a new game lobby.
 **Request Body:**
 ```json
 {
-  "maxPlayers": 10
+  "hostId": "uuid",
+  "lobbyName": "string",
+  "maxPlayers": "integer"
 }
 ```
 
@@ -266,11 +284,11 @@ Creates a new game lobby.
 ```json
 {
   "data": {
+    "gameId": "uuid",
     "lobbyId": "uuid",
-    "hostId": 12,
-    "maxPlayers": 10,
-    "currentPlayers": 1,
-    "status": "waiting"
+    "hostId": "uuid",
+    "status": "waiting_for_players",
+    "joinCode": "string"
   }
 }
 ```
@@ -292,14 +310,20 @@ Join an existing game lobby.
 **Headers:**
 - `Authorization: Bearer <token>`
 
+**Request Body:**
+```json
+{
+  "id": "uuid"
+}
+```
+
 **Success Response (200):**
 ```json
 {
   "data": {
     "lobbyId": "uuid",
-    "playerId": 12,
-    "currentPlayers": 6,
-    "maxPlayers": 10
+    "currentPlayers": "integer",
+    "maxPlayers": "integer"
   }
 }
 ```
@@ -330,12 +354,20 @@ Start the game in the lobby.
 **Headers:**
 - `Authorization: Bearer <token>`
 
+**Request Body:**
+```json
+{
+  "hostId": "uuid"
+}
+```
+
 **Success Response (200):**
 ```json
 {
   "data": {
     "gameId": "uuid",
-    "status": "started"
+    "status": "started",
+    "players": "array"
   }
 }
 ```
@@ -371,9 +403,9 @@ Get current game state.
 {
   "data": {
     "gameId": "uuid",
-    "phase": "day",
-    "dayNumber": 2,
-    "playersAlive": 7,
+    "phase": "day|night|voting|ended",
+    "dayNumber": "number",
+    "playersAlive": "array",
     "totalPlayers": 10
   }
 }
@@ -402,12 +434,12 @@ Get status of each player (alive/not alive).
   "data": {
     "players": [
       {
-        "playerId": 12,
+        "playerId": "uuid",
         "username": "player1",
         "status": "alive"
       },
       {
-        "playerId": 13,
+        "playerId": "uuid",
         "username": "player2",
         "status": "eliminated"
       }
@@ -422,11 +454,18 @@ Assign careers to players.
 **Headers:**
 - `Authorization: Bearer <token>`
 
+**Request Body:**
+```json
+{
+  "id": "uuid"
+}
+```
+
 **Success Response (200):**
 ```json
 {
   "data": {
-    "playerId": 12,
+    "playerId": "uuid",
     "career": "teacher",
     "tasks": ["grade_papers", "teach_class"]
   }
@@ -445,7 +484,7 @@ Get game events.
   "data": {
     "events": [
       {
-        "id": 12,
+        "id": "uuid",
         "type": "elimination",
         "message": "Player X was eliminated",
         "timestamp": "2023-10-01T12:00:00Z"
@@ -467,9 +506,9 @@ Get players and their roles.
   "data": {
     "players": [
       {
-        "playerId": 12,
+        "playerId": "uuid",
         "username": "player1",
-        "role": "unknown"
+        "role": "mafia|doctor|investigator|villager"
       }
     ]
   }
@@ -485,7 +524,7 @@ Submit voting results.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": 12
+  "targetPlayerId": "uuid"
 }
 ```
 
@@ -494,7 +533,7 @@ Submit voting results.
 {
   "data": {
     "voteSubmitted": true,
-    "targetPlayerId": 12
+    "targetPlayerId": "uuid"
   }
 }
 ```
@@ -1600,6 +1639,54 @@ Get list of votes for a game.
     "error": {
       "code": "GAME_NOT_FOUND",
       "message": "Game does not exist"
+    }
+  }
+  ```
+
+#### POST /votes/elimination
+Send voted-out player to Game Service.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "gameId": "uuid",
+  "dayNumber": 1,
+  "votedOutPlayerId": 13
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "data": {
+    "gameId": "uuid",
+    "dayNumber": 1,
+    "votedOutPlayerId": 13,
+    "notifiedAt": "2023-10-01T20:00:00Z"
+  }
+}
+```
+
+**Error Responses:**
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "GAME_NOT_FOUND",
+      "message": "Game does not exist"
+    }
+  }
+  ```
+  
+- **409 Conflict**
+  ```json
+  {
+    "error": {
+      "code": "ALREADY_NOTIFIED",
+      "message": "Elimination has already been sent for this day"
     }
   }
   ```
