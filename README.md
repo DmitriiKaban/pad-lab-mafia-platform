@@ -118,7 +118,7 @@ Authenticates user and returns JWT token.
 {
   "username": "string",
   "password": "string",
-  "deviceInfo": "object",
+  "deviceInfo": "object"
 }
 ```
 
@@ -242,7 +242,7 @@ Adds, substracts or sets a user's currency balance.
     "id": "uuid",
     "newBalance": "integer",
     "transactionId": "uuid",
-    "currency": "diamonds|coins",
+    "currency": "diamonds|coins"
   }
 }
 ```
