@@ -1688,7 +1688,6 @@ Our repository implements different protection levels based on branch importance
 
 ### PR Practices
 
-- Keep PRs focused and reasonably sized (< 400 lines of code changes when possible)
 - Include clear commit messages 
 - Add mentions from different services when cross-service changes are involved
 - Update documentation when adding new endpoints or changing existing behaviour
