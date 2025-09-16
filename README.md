@@ -49,7 +49,7 @@ The game continues with a cycle of day and night phases until one of two conditi
 - Shop Service: Manages the in-game item shop. It allows players to purchase items using their currency and includes an algorithm to balance item availability daily.
 - Roleplay Service: Governs the logic for role-specific abilities. It validates and executes player actions (e.g., a Mafia member performing a kill), records these actions, and generates filtered announcements (e.g., "A player was attacked last night") for the Game Service to broadcast.
 - Town Service: Manages the game world's locations. It tracks every player's movement between locations and reports these movements for other services to use.
-- Character Service: Manages player avatars and inventory. It handles character customization (assets, slots) and keeps track of items purchased from the Shop.
+- Character Service: Manages player avatars and inventory. Keeps track of current customized assets and items purchased from the Shop. Once an asset is changed it disappears from inventory, while new one is added. Items can be used (e.g., garlic) or dropped.
 - Rumors Service: Provides an information marketplace. Players can spend currency to buy pieces of information (rumors) about other players, sourced from their actions, appearance, or location.
 - Communication Service: Facilitates all in-game chat. It provides a global chat during the voting phase and private, secure chat channels for specific groups (e.g., Mafia members, players in the same location).
 - Task Service: Assigns daily tasks to players based on their role and career. It validates task completion and triggers currency rewards. The actions taken during tasks can become fodder for the Rumors Service.
@@ -434,12 +434,12 @@ Get status of each player (alive/not alive).
   "data": {
     "players": [
       {
-        "playerId": "uuid",
+        "playerId": "long",
         "username": "player1",
         "status": "alive"
       },
       {
-        "playerId": "uuid",
+        "playerId": "long",
         "username": "player2",
         "status": "eliminated"
       }
@@ -457,7 +457,7 @@ Assign careers to players.
 **Request Body:**
 ```json
 {
-  "id": "uuid"
+  "id": "long"
 }
 ```
 
@@ -465,7 +465,7 @@ Assign careers to players.
 ```json
 {
   "data": {
-    "playerId": "uuid",
+    "playerId": "long",
     "career": "teacher",
     "tasks": ["grade_papers", "teach_class"]
   }
@@ -506,7 +506,7 @@ Get players and their roles.
   "data": {
     "players": [
       {
-        "playerId": "uuid",
+        "playerId": "long",
         "username": "player1",
         "role": "mafia|doctor|investigator|villager"
       }
@@ -524,7 +524,7 @@ Submit voting results.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": "uuid"
+  "targetPlayerId": "long"
 }
 ```
 
@@ -533,7 +533,7 @@ Submit voting results.
 {
   "data": {
     "voteSubmitted": true,
-    "targetPlayerId": "uuid"
+    "targetPlayerId": "long"
   }
 }
 ```
@@ -778,7 +778,6 @@ Register night events - which contains who did what and to whom.
 ## 5. Town Service
 
 
-
 #### GET /locations
 Retrieve all available locations.
 
@@ -828,7 +827,7 @@ Get details of a specific location.
   }
   ```
 
-#### GET /movements
+#### GET /movements/{lobbyId}
 Get movement of all players.
 
 **Headers:**
@@ -840,7 +839,7 @@ Get movement of all players.
   "data": {
     "movements": [
       {
-        "playerId": 12,
+        "playerId": "long",
         "locationId": "uuid",
         "timestamp": "2023-10-01T12:00:00Z"
       }
@@ -858,7 +857,8 @@ Movement depending on location and day.
 **Request Body:**
 ```json
 {
-  "playerId": 12,
+  "lobbyId": "uuid",
+  "playerId": "long",
   "locationId": "uuid"
 }
 ```
@@ -867,7 +867,7 @@ Movement depending on location and day.
 ```json
 {
   "data": {
-    "playerId": 12,
+    "playerId": "long",
     "fromLocationId": "uuid",
     "toLocationId": "uuid",
     "timestamp": "2023-10-01T12:00:00Z"
@@ -886,7 +886,7 @@ Movement depending on location and day.
   }
   ```
 
-#### GET /movements/{playerId}
+#### GET /movements/{lobbyId}/{playerId}
 Get all movements of a specific player.
 
 **Headers:**
@@ -896,7 +896,7 @@ Get all movements of a specific player.
 ```json
 {
   "data": {
-    "playerId": 12,
+    "playerId": "long",
     "movements": [
       {
         "locationId": "uuid",
@@ -907,17 +907,6 @@ Get all movements of a specific player.
   }
 }
 ```
-
-**Error Responses:**
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
-    }
-  }
-  ```
 
 ---
 
@@ -938,24 +927,12 @@ Get list of items for a player.
     "items": [
       {
         "id": "uuid",
-        "name": "Night Vision Goggles",
         "quantity": 1
       }
     ]
   }
 }
 ```
-
-**Error Responses:**
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
-    }
-  }
-  ```
 
 #### POST /{playerId}/items
 Add item to player's inventory.
@@ -978,7 +955,6 @@ Add item to player's inventory.
 {
   "data": {
     "itemId": "uuid",
-    "quantity": 1,
     "totalQuantity": 2
   }
 }
@@ -1021,15 +997,6 @@ Drop/delete item from inventory.
     }
   }
   ```
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
-    }
-  }
-  ```
 
 #### POST /{playerId}/items/{itemId}/use
 Use an item.
@@ -1053,16 +1020,6 @@ Use an item.
     "error": {
       "code": "ITEM_NOT_FOUND",
       "message": "Item not found in inventory"
-    }
-  }
-  ```
-
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
     }
   }
   ```
@@ -1092,17 +1049,6 @@ Add character asset.
 }
 ```
 
-**Error Responses:**
-- **400 Bad Request**
-  ```json
-  {
-    "error": {
-      "code": "INVALID_SLOT",
-      "message": "Invalid asset slot specified"
-    }
-  }
-  ```
-
 #### GET /{playerId}/appearance
 Get character appearance - list of all assets.
 
@@ -1114,25 +1060,26 @@ Get character appearance - list of all assets.
 {
   "data": {
     "assets": {
-      "hair": "uuid",
-      "shirt": "uuid",
-      "pants": "uuid",
-      "accessories": ["uuid", "uuid"]
+      "hair": [
+        "uuid",
+        "uuid"
+      ],
+      "shirt": [
+        "uuid",
+        "uuid"
+      ],
+      "pants": [
+        "uuid",
+        "uuid"
+      ],
+      "accessories": [
+        "uuid",
+        "uuid"
+      ]
     }
   }
 }
 ```
-
-**Error Responses:**
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
-    }
-  }
-  ```
 
 #### PUT /{playerId}/assets
 Update character asset.
@@ -1179,7 +1126,7 @@ Update character asset.
 {
   "lobbyId": "lobby_id",
   "rumourType": "player_role",
-  "targetPlayerId": "player_id"
+  "targetPlayerId": "long"
 }
 ```
 
@@ -1490,7 +1437,7 @@ Assign daily tasks to a player by fetching their role and career from Game Servi
 ```json
 {
   "data": {
-    "playerId": "uuid",
+    "playerId": "long",
     "gameId": "uuid",
     "playerCareer": "teacher",
     "playerRole": "civilian",
@@ -1653,8 +1600,8 @@ Assign vote to a player.
 ```json
 {
   "gameId": "uuid",
-  "voterId": "uuid",
-  "targetPlayerId": "uuid"
+  "voterId": "long",
+  "targetPlayerId": "long"
 }
 ```
 
@@ -1663,8 +1610,8 @@ Assign vote to a player.
 {
   "data": {
     "voteId": "uuid",
-    "voterId": "uuid",
-    "targetPlayerId": "uuid"
+    "voterId": "long",
+    "targetPlayerId": "long"
   }
 }
 ```
@@ -1698,7 +1645,7 @@ Change an existing vote to target a different player.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": "uuid"
+  "targetPlayerId": "long"
 }
 ```
 
@@ -1707,8 +1654,8 @@ Change an existing vote to target a different player.
 {
   "data": {
     "voteId": "uuid",
-    "voterId": "uuid",
-    "targetPlayerId": "uuid"
+    "voterId": "long",
+    "targetPlayerId": "long"
   }
 }
 ```
@@ -1758,11 +1705,11 @@ Get list of votes for a game.
         "dayNumber": 1,
         "votes": [
           {
-            "targetPlayerId": "uuid_player_A",
+            "targetPlayerId": "long",
             "voteCount": 3
           },
           {
-            "targetPlayerId": "uuid_player_B",
+            "targetPlayerId": "long",
             "voteCount": 2
           }
         ],
