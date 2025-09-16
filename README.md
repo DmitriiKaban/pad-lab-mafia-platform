@@ -1480,13 +1480,77 @@ Update character asset.
 
 ## 9. Task Service
 
-
-
-#### GET /player/{playerId}
-Get tasks based on player.
+#### POST /tasks/assign/{gameId}/{playerId}
+Assign daily tasks to a player by fetching their role and career from Game Service, then assigning tasks based on their career.
 
 **Headers:**
-- `Authorization: Bearer <token>`
+* `Authorization: Bearer <token>`
+
+**Success Response (201):**
+```json
+{
+  "data": {
+    "playerId": "uuid",
+    "gameId": "uuid",
+    "playerCareer": "teacher",
+    "playerRole": "civilian",
+    "tasks": [
+      {
+        "id": "uuid",
+        "name": "Teach Class",
+        "description": "Teach a class at the school",
+        "reward": {
+          "coins": 50,
+          "diamonds": 0
+        },
+        "status": "available",
+        "location": "school"
+      },
+      {
+        "id": "uuid",
+        "name": "Grade Papers",
+        "description": "Grade student assignments",
+        "reward": {
+          "coins": 30,
+          "diamonds": 0
+        },
+        "status": "available",
+        "location": "school"
+      }
+    ]
+  }
+}
+```
+
+**Error Responses:**
+* **400 Bad Request**
+  ```json
+  {
+    "error": {
+      "code": "TASKS_ALREADY_ASSIGNED",
+      "message": "Tasks have already been assigned for this day"
+    }
+  }
+  ```
+* **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "PLAYER_NOT_FOUND",
+      "message": "Player does not exist in the specified game"
+    }
+  }
+  ```
+
+#### GET /player/{playerId}/tasks
+Get tasks assigned to a specific player.
+
+**Headers:**
+* `Authorization: Bearer <token>`
+
+**Query Parameters:**
+* `gameId` (required): UUID of the game
+* `dayNumber` (optional): Specific day number to filter tasks
 
 **Success Response (200):**
 ```json
@@ -1509,11 +1573,22 @@ Get tasks based on player.
 }
 ```
 
+**Error Responses:**
+* **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "PLAYER_NOT_FOUND",
+      "message": "Player does not exist"
+    }
+  }
+  ```
+
 #### PUT /tasks/{taskId}/status
-Update task status.
+Update task completion status.
 
 **Headers:**
-- `Authorization: Bearer <token>`
+* `Authorization: Bearer <token>`
 
 **Request Body:**
 ```json
@@ -1531,14 +1606,22 @@ Update task status.
     "reward": {
       "coins": 50,
       "diamonds": 0
-    },
-    "completedAt": "2023-10-01T12:00:00Z"
+    }
   }
 }
 ```
 
 **Error Responses:**
-- **404 Not Found**
+* **400 Bad Request**
+  ```json
+  {
+    "error": {
+      "code": "INVALID_STATUS_TRANSITION",
+      "message": "Cannot change status from current state"
+    }
+  }
+  ```
+* **404 Not Found**
   ```json
   {
     "error": {
@@ -1547,12 +1630,18 @@ Update task status.
     }
   }
   ```
-
+* **403 Forbidden**
+  ```json
+  {
+    "error": {
+      "code": "DEADLINE_EXCEEDED",
+      "message": "Task deadline has passed, cannot complete task"
+    }
+  }
+  ```
 ---
 
 ## 10. Voting Service
-
-
 
 #### POST /vote
 Assign vote to a player.
@@ -1564,8 +1653,8 @@ Assign vote to a player.
 ```json
 {
   "gameId": "uuid",
-  "voterId": 12,
-  "targetPlayerId": 13
+  "voterId": "uuid",
+  "targetPlayerId": "uuid"
 }
 ```
 
@@ -1574,9 +1663,8 @@ Assign vote to a player.
 {
   "data": {
     "voteId": "uuid",
-    "voterId": 12,
-    "targetPlayerId": 13,
-    "timestamp": "2023-10-01T12:00:00Z"
+    "voterId": "uuid",
+    "targetPlayerId": "uuid"
   }
 }
 ```
@@ -1601,6 +1689,59 @@ Assign vote to a player.
   }
   ```
 
+#### PUT /vote/{voteId}
+Change an existing vote to target a different player.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "targetPlayerId": "uuid"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "data": {
+    "voteId": "uuid",
+    "voterId": "uuid",
+    "targetPlayerId": "uuid"
+  }
+}
+```
+
+**Error Responses:**
+- **400 Bad Request**
+  ```json
+  {
+    "error": {
+      "code": "VOTING_NOT_ACTIVE",
+      "message": "Voting phase is not currently active"
+    }
+  }
+  ```
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "VOTE_NOT_FOUND",
+      "message": "Vote does not exist or does not belong to the authenticated user"
+    }
+  }
+  ```
+- **403 Forbidden**
+  ```json
+  {
+    "error": {
+      "code": "UNAUTHORIZED_VOTE_CHANGE",
+      "message": "You can only change your own votes"
+    }
+  }
+  ```
+
 #### GET /votes/{gameId}
 Get list of votes for a game.
 
@@ -1617,11 +1758,11 @@ Get list of votes for a game.
         "dayNumber": 1,
         "votes": [
           {
-            "targetPlayerId": 12,
+            "targetPlayerId": "uuid_player_A",
             "voteCount": 3
           },
           {
-            "targetPlayerId": 13,
+            "targetPlayerId": "uuid_player_B",
             "voteCount": 2
           }
         ],
