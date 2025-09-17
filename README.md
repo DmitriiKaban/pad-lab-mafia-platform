@@ -116,8 +116,8 @@ Authenticates user and returns JWT token.
 **Request Body:**
 ```json
 {
-  "username": 1,
-  "password": 1,
+  "username": "string",
+  "password": "string",
   "deviceInfo": "object"
 }
 ```
@@ -127,7 +127,7 @@ Authenticates user and returns JWT token.
 {
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "username": 1
+    "username": "string"
   }
 }
 ```
@@ -149,9 +149,9 @@ Creates a new user account.
 **Request Body:**
 ```json
 {
-  "username": 1,
-  "email": 1,
-  "password": 1,
+  "username": "string",
+  "email": "string",
+  "password": "string",
   "identification": 1,
   "deviceInfo": "object",
   "location": 1
@@ -163,7 +163,7 @@ Creates a new user account.
 {
   "data": {
     "id": 1,
-    "username": 1 
+    "username": "string"
   }
 }
 ```
@@ -199,8 +199,8 @@ Retrieves user profile information.
 {
   "data": {
     "id": 1,
-    "username": 1,
-    "email": 1,
+    "username": "string",
+    "email": "string",
     "currency": {
       "diamonds": 50,
       "coins": 250
@@ -275,7 +275,7 @@ Creates a new game lobby.
 ```json
 {
   "hostId": 1,
-  "lobbyName": 1,
+  "lobbyName": "string",
   "maxPlayers": 1
 }
 ```
@@ -435,12 +435,12 @@ Get status of each player (alive/not alive).
     "players": [
       {
         "playerId": 1,
-        "username": "player1",
+        "username": "string",
         "status": "alive"
       },
       {
         "playerId": 1,
-        "username": "player2",
+        "username": "string",
         "status": "eliminated"
       }
     ]
@@ -466,7 +466,7 @@ Assign careers to players.
 {
   "data": {
     "playerId": 1,
-    "career": "teacher",
+    "career": "string",
     "tasks": ["grade_papers", "teach_class"]
   }
 }
@@ -507,7 +507,7 @@ Get players and their roles.
     "players": [
       {
         "playerId": 1,
-        "username": "player1",
+        "username": "string",
         "role": "mafia|doctor|investigator|villager"
       }
     ]
@@ -592,7 +592,7 @@ Purchase an item from the shop.
 {
   "data": {
     "itemId": 1,
-    "itemName": "Garlic",
+    "itemName": "string",
     "quantity": 1,
     "totalCost": 150,
     "remainingCurrency": {
