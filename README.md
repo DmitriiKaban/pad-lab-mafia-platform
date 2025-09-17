@@ -230,7 +230,7 @@ Adds, substracts or sets a user's currency balance.
 ```json
 {
   "currency": "diamonds|coins",
-  "amount": "integer",
+  "amount": 1,
   "operation": "add|subtract|set"
 }
 ```
@@ -240,7 +240,7 @@ Adds, substracts or sets a user's currency balance.
 {
  "data": {
     "id": 1,
-    "newBalance": "integer",
+    "newBalance": 1,
     "transactionId": 1,
     "currency": "diamonds|coins"
   }
@@ -276,7 +276,7 @@ Creates a new game lobby.
 {
   "hostId": 1,
   "lobbyName": 1,
-  "maxPlayers": "integer"
+  "maxPlayers": 1
 }
 ```
 
@@ -322,8 +322,8 @@ Join an existing game lobby.
 {
   "data": {
     "lobbyId": 1,
-    "currentPlayers": "integer",
-    "maxPlayers": "integer"
+    "currentPlayers": 1,
+    "maxPlayers": 1
   }
 }
 ```
