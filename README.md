@@ -116,8 +116,8 @@ Authenticates user and returns JWT token.
 **Request Body:**
 ```json
 {
-  "username": "string",
-  "password": "string",
+  "username": 1,
+  "password": 1,
   "deviceInfo": "object"
 }
 ```
@@ -127,7 +127,7 @@ Authenticates user and returns JWT token.
 {
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "username": "string"
+    "username": 1
   }
 }
 ```
@@ -149,12 +149,12 @@ Creates a new user account.
 **Request Body:**
 ```json
 {
-  "username": "string",
-  "email": "string",
-  "password": "string",
-  "identification": "string",
+  "username": 1,
+  "email": 1,
+  "password": 1,
+  "identification": 1,
   "deviceInfo": "object",
-  "location": "string"
+  "location": 1
 }
 ```
 
@@ -162,8 +162,8 @@ Creates a new user account.
 ```json
 {
   "data": {
-    "id": "uuid",
-    "username": "string" 
+    "id": 1,
+    "username": 1 
   }
 }
 ```
@@ -198,9 +198,9 @@ Retrieves user profile information.
 ```json
 {
   "data": {
-    "id": "uuid",
-    "username": "string",
-    "email": "string",
+    "id": 1,
+    "username": 1,
+    "email": 1,
     "currency": {
       "diamonds": 50,
       "coins": 250
@@ -239,9 +239,9 @@ Adds, substracts or sets a user's currency balance.
 ```json
 {
  "data": {
-    "id": "uuid",
+    "id": 1,
     "newBalance": "integer",
-    "transactionId": "uuid",
+    "transactionId": 1,
     "currency": "diamonds|coins"
   }
 }
@@ -274,8 +274,8 @@ Creates a new game lobby.
 **Request Body:**
 ```json
 {
-  "hostId": "uuid",
-  "lobbyName": "string",
+  "hostId": 1,
+  "lobbyName": 1,
   "maxPlayers": "integer"
 }
 ```
@@ -284,11 +284,11 @@ Creates a new game lobby.
 ```json
 {
   "data": {
-    "gameId": "uuid",
-    "lobbyId": "uuid",
-    "hostId": "uuid",
+    "gameId": 1,
+    "lobbyId": 1,
+    "hostId": 1,
     "status": "waiting_for_players",
-    "joinCode": "string"
+    "joinCode": 1
   }
 }
 ```
@@ -313,7 +313,7 @@ Join an existing game lobby.
 **Request Body:**
 ```json
 {
-  "id": "uuid"
+  "id": 1
 }
 ```
 
@@ -321,7 +321,7 @@ Join an existing game lobby.
 ```json
 {
   "data": {
-    "lobbyId": "uuid",
+    "lobbyId": 1,
     "currentPlayers": "integer",
     "maxPlayers": "integer"
   }
@@ -357,7 +357,7 @@ Start the game in the lobby.
 **Request Body:**
 ```json
 {
-  "hostId": "uuid"
+  "hostId": 1
 }
 ```
 
@@ -365,7 +365,7 @@ Start the game in the lobby.
 ```json
 {
   "data": {
-    "gameId": "uuid",
+    "gameId": 1,
     "status": "started",
     "players": "array"
   }
@@ -402,7 +402,7 @@ Get current game state.
 ```json
 {
   "data": {
-    "gameId": "uuid",
+    "gameId": 1,
     "phase": "day|night|voting|ended",
     "dayNumber": "number",
     "playersAlive": "array",
@@ -434,12 +434,12 @@ Get status of each player (alive/not alive).
   "data": {
     "players": [
       {
-        "playerId": "long",
+        "playerId": 1,
         "username": "player1",
         "status": "alive"
       },
       {
-        "playerId": "long",
+        "playerId": 1,
         "username": "player2",
         "status": "eliminated"
       }
@@ -457,7 +457,7 @@ Assign careers to players.
 **Request Body:**
 ```json
 {
-  "id": "long"
+  "id": 1
 }
 ```
 
@@ -465,7 +465,7 @@ Assign careers to players.
 ```json
 {
   "data": {
-    "playerId": "long",
+    "playerId": 1,
     "career": "teacher",
     "tasks": ["grade_papers", "teach_class"]
   }
@@ -484,7 +484,7 @@ Get game events.
   "data": {
     "events": [
       {
-        "id": "uuid",
+        "id": 1,
         "type": "elimination",
         "message": "Player X was eliminated",
         "timestamp": "2023-10-01T12:00:00Z"
@@ -506,7 +506,7 @@ Get players and their roles.
   "data": {
     "players": [
       {
-        "playerId": "long",
+        "playerId": 1,
         "username": "player1",
         "role": "mafia|doctor|investigator|villager"
       }
@@ -524,7 +524,7 @@ Submit voting results.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": "long"
+  "targetPlayerId": 1
 }
 ```
 
@@ -533,7 +533,7 @@ Submit voting results.
 {
   "data": {
     "voteSubmitted": true,
-    "targetPlayerId": "long"
+    "targetPlayerId": 1
   }
 }
 ```
@@ -582,7 +582,7 @@ Purchase an item from the shop.
 **Request Body:**
 ```json
 {
-  "itemId": "uuid",
+  "itemId": 1,
   "quantity": 1
 }
 ```
@@ -591,7 +591,7 @@ Purchase an item from the shop.
 ```json
 {
   "data": {
-    "itemId": "uuid",
+    "itemId": 1,
     "itemName": "Garlic",
     "quantity": 1,
     "totalCost": 150,
@@ -641,7 +641,7 @@ Receive day/night update and automatically restock.
 **Request Body:**
 ```json
 {
-  "gameId": "uuid",
+  "gameId": 1,
   "phase": "night",
   "dayNumber": 2
 }
@@ -670,7 +670,7 @@ List available items in the shop.
   "data": {
     "items": [
       {
-        "id": "uuid",
+        "id": 1,
         "name": "Night Vision Goggles",
         "description": "See better during night phase",
         "price": {
@@ -699,7 +699,7 @@ Update day/night phase.
 **Request Body:**
 ```json
 {
-  "gameId": "uuid",
+  "gameId": 1,
   "newPhase": "night",
   "dayNumber": 2
 }
@@ -709,7 +709,7 @@ Update day/night phase.
 ```json
 {
   "data": {
-    "gameId": "uuid",
+    "gameId": 1,
     "phase": "night",
     "dayNumber": 2
   }
@@ -736,7 +736,7 @@ Register night events - which contains who did what and to whom.
 **Request Body:**
 ```json
 {
-  "gameId": "uuid",
+  "gameId": 1,
   "playerId": 12,
   "action": "eliminate",
   "targetPlayerId": 13
@@ -747,7 +747,7 @@ Register night events - which contains who did what and to whom.
 ```json
 {
   "data": {
-    "eventId": "uuid",
+    "eventId": 1,
     "action": "eliminate"
   }
 }
@@ -790,7 +790,7 @@ Retrieve all available locations.
   "data": {
     "locations": [
       {
-        "id": "uuid",
+        "id": 1,
         "name": "School",
         "description": "Education center"
       }
@@ -809,7 +809,7 @@ Get details of a specific location.
 ```json
 {
   "data": {
-    "id": "uuid",
+    "id": 1,
     "name": "School",
     "description": "Education center"
   }
@@ -839,8 +839,8 @@ Get movement of all players.
   "data": {
     "movements": [
       {
-        "playerId": "long",
-        "locationId": "uuid",
+        "playerId": 1,
+        "locationId": 1,
         "timestamp": "2023-10-01T12:00:00Z"
       }
     ]
@@ -857,9 +857,9 @@ Movement depending on location and day.
 **Request Body:**
 ```json
 {
-  "lobbyId": "uuid",
-  "playerId": "long",
-  "locationId": "uuid"
+  "lobbyId": 1,
+  "playerId": 1,
+  "locationId": 1
 }
 ```
 
@@ -867,9 +867,9 @@ Movement depending on location and day.
 ```json
 {
   "data": {
-    "playerId": "long",
-    "fromLocationId": "uuid",
-    "toLocationId": "uuid",
+    "playerId": 1,
+    "fromLocationId": 1,
+    "toLocationId": 1,
     "timestamp": "2023-10-01T12:00:00Z"
   }
 }
@@ -896,10 +896,10 @@ Get all movements of a specific player.
 ```json
 {
   "data": {
-    "playerId": "long",
+    "playerId": 1,
     "movements": [
       {
-        "locationId": "uuid",
+        "locationId": 1,
         "locationName": "School",
         "timestamp": "2023-10-01T12:00:00Z"
       }
@@ -926,7 +926,7 @@ Get list of items for a player.
   "data": {
     "items": [
       {
-        "id": "uuid",
+        "id": 1,
         "quantity": 1
       }
     ]
@@ -943,7 +943,7 @@ Add item to player's inventory.
 **Request Body:**
 ```json
 {
-  "itemId": "uuid",
+  "itemId": 1,
   "quantity": 1
 }
 ```
@@ -954,7 +954,7 @@ Add item to player's inventory.
 ```json
 {
   "data": {
-    "itemId": "uuid",
+    "itemId": 1,
     "totalQuantity": 2
   }
 }
@@ -981,7 +981,7 @@ Drop/delete item from inventory.
 ```json
 {
   "data": {
-    "itemId": "uuid",
+    "itemId": 1,
     "removed": true
   }
 }
@@ -1008,7 +1008,7 @@ Use an item.
 ```json
 {
   "data": {
-    "itemId": "uuid"
+    "itemId": 1
   }
 }
 ```
@@ -1034,7 +1034,7 @@ Add character asset.
 ```json
 {
   "slot": "hair",
-  "assetId": "uuid"
+  "assetId": 1
 }
 ```
 
@@ -1043,7 +1043,7 @@ Add character asset.
 {
   "data": {
     "slot": "hair",
-    "assetId": "uuid",
+    "assetId": 1,
     "equipped": true
   }
 }
@@ -1060,21 +1060,12 @@ Get character appearance - list of all assets.
 {
   "data": {
     "assets": {
-      "hair": [
-        "uuid",
-        "uuid"
-      ],
-      "shirt": [
-        "uuid",
-        "uuid"
-      ],
-      "pants": [
-        "uuid",
-        "uuid"
-      ],
+      "hair": 1,
+      "shirt": 1,
+      "pants": 2,
       "accessories": [
-        "uuid",
-        "uuid"
+        1,
+        2
       ]
     }
   }
@@ -1091,7 +1082,7 @@ Update character asset.
 ```json
 {
   "slot": "shirt",
-  "assetId": "uuid"
+  "assetId": 1
 }
 ```
 
@@ -1100,8 +1091,8 @@ Update character asset.
 {
   "data": {
     "slot": "shirt",
-    "previousAssetId": "uuid",
-    "newAssetId": "uuid"
+    "previousAssetId": 1,
+    "newAssetId": 1
   }
 }
 ```
@@ -1126,7 +1117,7 @@ Update character asset.
 {
   "lobbyId": "lobby_id",
   "rumourType": "player_role",
-  "targetPlayerId": "long"
+  "targetPlayerId": 1
 }
 ```
 
@@ -1437,13 +1428,13 @@ Assign daily tasks to a player by fetching their role and career from Game Servi
 ```json
 {
   "data": {
-    "playerId": "long",
-    "gameId": "uuid",
+    "playerId": 1,
+    "gameId": 1,
     "playerCareer": "teacher",
     "playerRole": "civilian",
     "tasks": [
       {
-        "id": "uuid",
+        "id": 1,
         "name": "Teach Class",
         "description": "Teach a class at the school",
         "reward": {
@@ -1454,7 +1445,7 @@ Assign daily tasks to a player by fetching their role and career from Game Servi
         "location": "school"
       },
       {
-        "id": "uuid",
+        "id": 1,
         "name": "Grade Papers",
         "description": "Grade student assignments",
         "reward": {
@@ -1496,7 +1487,7 @@ Get tasks assigned to a specific player.
 * `Authorization: Bearer <token>`
 
 **Query Parameters:**
-* `gameId` (required): UUID of the game
+* `gameId` (required): Long of the game
 * `dayNumber` (optional): Specific day number to filter tasks
 
 **Success Response (200):**
@@ -1505,7 +1496,7 @@ Get tasks assigned to a specific player.
   "data": {
     "tasks": [
       {
-        "id": "uuid",
+        "id": 1,
         "name": "Teach Class",
         "description": "Teach a class at the school",
         "reward": {
@@ -1548,7 +1539,7 @@ Update task completion status.
 ```json
 {
   "data": {
-    "taskId": "uuid",
+    "taskId": 1,
     "status": "completed",
     "reward": {
       "coins": 50,
@@ -1599,9 +1590,9 @@ Assign vote to a player.
 **Request Body:**
 ```json
 {
-  "gameId": "uuid",
-  "voterId": "long",
-  "targetPlayerId": "long"
+  "gameId": 1,
+  "voterId": 1,
+  "targetPlayerId": 1
 }
 ```
 
@@ -1609,9 +1600,9 @@ Assign vote to a player.
 ```json
 {
   "data": {
-    "voteId": "uuid",
-    "voterId": "long",
-    "targetPlayerId": "long"
+    "voteId": 1,
+    "voterId": 1,
+    "targetPlayerId": 1
   }
 }
 ```
@@ -1645,7 +1636,7 @@ Change an existing vote to target a different player.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": "long"
+  "targetPlayerId": 1
 }
 ```
 
@@ -1653,9 +1644,9 @@ Change an existing vote to target a different player.
 ```json
 {
   "data": {
-    "voteId": "uuid",
-    "voterId": "long",
-    "targetPlayerId": "long"
+    "voteId": 1,
+    "voterId": 1,
+    "targetPlayerId": 1
   }
 }
 ```
@@ -1701,15 +1692,15 @@ Get list of votes for a game.
   "data": {
     "votingSessions": [
       {
-        "sessionId": "uuid_of_session_1",
+        "sessionId": 1,
         "dayNumber": 1,
         "votes": [
           {
-            "targetPlayerId": "long",
+            "targetPlayerId": 1,
             "voteCount": 3
           },
           {
-            "targetPlayerId": "long",
+            "targetPlayerId": 1,
             "voteCount": 2
           }
         ],
@@ -1740,7 +1731,7 @@ Send voted-out player to Game Service.
 **Request Body:**
 ```json
 {
-  "gameId": "uuid",
+  "gameId": 1,
   "dayNumber": 1,
   "votedOutPlayerId": 13
 }
@@ -1750,7 +1741,7 @@ Send voted-out player to Game Service.
 ```json
 {
   "data": {
-    "gameId": "uuid",
+    "gameId": 1,
     "dayNumber": 1,
     "votedOutPlayerId": 13,
     "notifiedAt": "2023-10-01T20:00:00Z"
