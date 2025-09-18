@@ -49,7 +49,7 @@ The game continues with a cycle of day and night phases until one of two conditi
 - Shop Service: Manages the in-game item shop. It allows players to purchase items using their currency and includes an algorithm to balance item availability daily.
 - Roleplay Service: Governs the logic for role-specific abilities. It validates and executes player actions (e.g., a Mafia member performing a kill), records these actions, and generates filtered announcements (e.g., "A player was attacked last night") for the Game Service to broadcast.
 - Town Service: Manages the game world's locations. It tracks every player's movement between locations and reports these movements for other services to use.
-- Character Service: Manages player avatars and inventory. It handles character customization (assets, slots) and keeps track of items purchased from the Shop.
+- Character Service: Manages player avatars and inventory. Keeps track of current customized assets and items purchased from the Shop. Once an asset is changed it disappears from inventory, while new one is added. Items can be used (e.g., garlic) or dropped.
 - Rumors Service: Provides an information marketplace. Players can spend currency to buy pieces of information (rumors) about other players, sourced from their actions, appearance, or location.
 - Communication Service: Facilitates all in-game chat. It provides a global chat during the voting phase and private, secure chat channels for specific groups (e.g., Mafia members, players in the same location).
 - Task Service: Assigns daily tasks to players based on their role and career. It validates task completion and triggers currency rewards. The actions taken during tasks can become fodder for the Rumors Service.
@@ -152,9 +152,9 @@ Creates a new user account.
   "username": "string",
   "email": "string",
   "password": "string",
-  "identification": "string",
+  "identification": 1,
   "deviceInfo": "object",
-  "location": "string"
+  "location": 1
 }
 ```
 
@@ -162,8 +162,8 @@ Creates a new user account.
 ```json
 {
   "data": {
-    "id": "uuid",
-    "username": "string" 
+    "id": 1,
+    "username": "string"
   }
 }
 ```
@@ -198,7 +198,7 @@ Retrieves user profile information.
 ```json
 {
   "data": {
-    "id": "uuid",
+    "id": 1,
     "username": "string",
     "email": "string",
     "currency": {
@@ -230,7 +230,7 @@ Adds, substracts or sets a user's currency balance.
 ```json
 {
   "currency": "diamonds|coins",
-  "amount": "integer",
+  "amount": 1,
   "operation": "add|subtract|set"
 }
 ```
@@ -239,9 +239,9 @@ Adds, substracts or sets a user's currency balance.
 ```json
 {
  "data": {
-    "id": "uuid",
-    "newBalance": "integer",
-    "transactionId": "uuid",
+    "id": 1,
+    "newBalance": 1,
+    "transactionId": 1,
     "currency": "diamonds|coins"
   }
 }
@@ -274,9 +274,9 @@ Creates a new game lobby.
 **Request Body:**
 ```json
 {
-  "hostId": "uuid",
+  "hostId": 1,
   "lobbyName": "string",
-  "maxPlayers": "integer"
+  "maxPlayers": 1
 }
 ```
 
@@ -284,11 +284,11 @@ Creates a new game lobby.
 ```json
 {
   "data": {
-    "gameId": "uuid",
-    "lobbyId": "uuid",
-    "hostId": "uuid",
+    "gameId": 1,
+    "lobbyId": 1,
+    "hostId": 1,
     "status": "waiting_for_players",
-    "joinCode": "string"
+    "joinCode": 1
   }
 }
 ```
@@ -313,7 +313,7 @@ Join an existing game lobby.
 **Request Body:**
 ```json
 {
-  "id": "uuid"
+  "id": 1
 }
 ```
 
@@ -321,9 +321,9 @@ Join an existing game lobby.
 ```json
 {
   "data": {
-    "lobbyId": "uuid",
-    "currentPlayers": "integer",
-    "maxPlayers": "integer"
+    "lobbyId": 1,
+    "currentPlayers": 1,
+    "maxPlayers": 1
   }
 }
 ```
@@ -357,7 +357,7 @@ Start the game in the lobby.
 **Request Body:**
 ```json
 {
-  "hostId": "uuid"
+  "hostId": 1
 }
 ```
 
@@ -365,7 +365,7 @@ Start the game in the lobby.
 ```json
 {
   "data": {
-    "gameId": "uuid",
+    "gameId": 1,
     "status": "started",
     "players": "array"
   }
@@ -402,7 +402,7 @@ Get current game state.
 ```json
 {
   "data": {
-    "gameId": "uuid",
+    "gameId": 1,
     "phase": "day|night|voting|ended",
     "dayNumber": "number",
     "playersAlive": "array",
@@ -434,13 +434,13 @@ Get status of each player (alive/not alive).
   "data": {
     "players": [
       {
-        "playerId": "uuid",
-        "username": "player1",
+        "playerId": 1,
+        "username": "string",
         "status": "alive"
       },
       {
-        "playerId": "uuid",
-        "username": "player2",
+        "playerId": 1,
+        "username": "string",
         "status": "eliminated"
       }
     ]
@@ -457,7 +457,7 @@ Assign careers to players.
 **Request Body:**
 ```json
 {
-  "id": "uuid"
+  "id": 1
 }
 ```
 
@@ -465,8 +465,8 @@ Assign careers to players.
 ```json
 {
   "data": {
-    "playerId": "uuid",
-    "career": "teacher",
+    "playerId": 1,
+    "career": "string",
     "tasks": ["grade_papers", "teach_class"]
   }
 }
@@ -484,7 +484,7 @@ Get game events.
   "data": {
     "events": [
       {
-        "id": "uuid",
+        "id": 1,
         "type": "elimination",
         "message": "Player X was eliminated",
         "timestamp": "2023-10-01T12:00:00Z"
@@ -506,8 +506,8 @@ Get players and their roles.
   "data": {
     "players": [
       {
-        "playerId": "uuid",
-        "username": "player1",
+        "playerId": 1,
+        "username": "string",
         "role": "mafia|doctor|investigator|villager"
       }
     ]
@@ -524,7 +524,7 @@ Submit voting results.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": "uuid"
+  "targetPlayerId": 1
 }
 ```
 
@@ -533,7 +533,7 @@ Submit voting results.
 {
   "data": {
     "voteSubmitted": true,
-    "targetPlayerId": "uuid"
+    "targetPlayerId": 1
   }
 }
 ```
@@ -582,7 +582,7 @@ Purchase an item from the shop.
 **Request Body:**
 ```json
 {
-  "itemId": "uuid",
+  "itemId": 1,
   "quantity": 1
 }
 ```
@@ -591,8 +591,8 @@ Purchase an item from the shop.
 ```json
 {
   "data": {
-    "itemId": "uuid",
-    "itemName": "Garlic",
+    "itemId": 1,
+    "itemName": "string",
     "quantity": 1,
     "totalCost": 150,
     "remainingCurrency": {
@@ -641,7 +641,7 @@ Receive day/night update and automatically restock.
 **Request Body:**
 ```json
 {
-  "gameId": "uuid",
+  "gameId": 1,
   "phase": "night",
   "dayNumber": 2
 }
@@ -670,7 +670,7 @@ List available items in the shop.
   "data": {
     "items": [
       {
-        "id": "uuid",
+        "id": 1,
         "name": "Night Vision Goggles",
         "description": "See better during night phase",
         "price": {
@@ -699,7 +699,7 @@ Update day/night phase.
 **Request Body:**
 ```json
 {
-  "gameId": "uuid",
+  "gameId": 1,
   "newPhase": "night",
   "dayNumber": 2
 }
@@ -709,7 +709,7 @@ Update day/night phase.
 ```json
 {
   "data": {
-    "gameId": "uuid",
+    "gameId": 1,
     "phase": "night",
     "dayNumber": 2
   }
@@ -736,7 +736,7 @@ Register night events - which contains who did what and to whom.
 **Request Body:**
 ```json
 {
-  "gameId": "uuid",
+  "gameId": 1,
   "playerId": 12,
   "action": "eliminate",
   "targetPlayerId": 13
@@ -747,7 +747,7 @@ Register night events - which contains who did what and to whom.
 ```json
 {
   "data": {
-    "eventId": "uuid",
+    "eventId": 1,
     "action": "eliminate"
   }
 }
@@ -778,7 +778,6 @@ Register night events - which contains who did what and to whom.
 ## 5. Town Service
 
 
-
 #### GET /locations
 Retrieve all available locations.
 
@@ -791,7 +790,7 @@ Retrieve all available locations.
   "data": {
     "locations": [
       {
-        "id": "uuid",
+        "id": 1,
         "name": "School",
         "description": "Education center"
       }
@@ -810,7 +809,7 @@ Get details of a specific location.
 ```json
 {
   "data": {
-    "id": "uuid",
+    "id": 1,
     "name": "School",
     "description": "Education center"
   }
@@ -828,7 +827,7 @@ Get details of a specific location.
   }
   ```
 
-#### GET /movements
+#### GET /movements/{lobbyId}
 Get movement of all players.
 
 **Headers:**
@@ -840,8 +839,8 @@ Get movement of all players.
   "data": {
     "movements": [
       {
-        "playerId": 12,
-        "locationId": "uuid",
+        "playerId": 1,
+        "locationId": 1,
         "timestamp": "2023-10-01T12:00:00Z"
       }
     ]
@@ -858,8 +857,9 @@ Movement depending on location and day.
 **Request Body:**
 ```json
 {
-  "playerId": 12,
-  "locationId": "uuid"
+  "lobbyId": 1,
+  "playerId": 1,
+  "locationId": 1
 }
 ```
 
@@ -867,9 +867,9 @@ Movement depending on location and day.
 ```json
 {
   "data": {
-    "playerId": 12,
-    "fromLocationId": "uuid",
-    "toLocationId": "uuid",
+    "playerId": 1,
+    "fromLocationId": 1,
+    "toLocationId": 1,
     "timestamp": "2023-10-01T12:00:00Z"
   }
 }
@@ -886,7 +886,7 @@ Movement depending on location and day.
   }
   ```
 
-#### GET /movements/{playerId}
+#### GET /movements/{lobbyId}/{playerId}
 Get all movements of a specific player.
 
 **Headers:**
@@ -896,10 +896,10 @@ Get all movements of a specific player.
 ```json
 {
   "data": {
-    "playerId": 12,
+    "playerId": 1,
     "movements": [
       {
-        "locationId": "uuid",
+        "locationId": 1,
         "locationName": "School",
         "timestamp": "2023-10-01T12:00:00Z"
       }
@@ -907,17 +907,6 @@ Get all movements of a specific player.
   }
 }
 ```
-
-**Error Responses:**
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
-    }
-  }
-  ```
 
 ---
 
@@ -937,25 +926,13 @@ Get list of items for a player.
   "data": {
     "items": [
       {
-        "id": "uuid",
-        "name": "Night Vision Goggles",
+        "id": 1,
         "quantity": 1
       }
     ]
   }
 }
 ```
-
-**Error Responses:**
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
-    }
-  }
-  ```
 
 #### POST /{playerId}/items
 Add item to player's inventory.
@@ -966,7 +943,7 @@ Add item to player's inventory.
 **Request Body:**
 ```json
 {
-  "itemId": "uuid",
+  "itemId": 1,
   "quantity": 1
 }
 ```
@@ -977,8 +954,7 @@ Add item to player's inventory.
 ```json
 {
   "data": {
-    "itemId": "uuid",
-    "quantity": 1,
+    "itemId": 1,
     "totalQuantity": 2
   }
 }
@@ -1005,7 +981,7 @@ Drop/delete item from inventory.
 ```json
 {
   "data": {
-    "itemId": "uuid",
+    "itemId": 1,
     "removed": true
   }
 }
@@ -1021,15 +997,6 @@ Drop/delete item from inventory.
     }
   }
   ```
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
-    }
-  }
-  ```
 
 #### POST /{playerId}/items/{itemId}/use
 Use an item.
@@ -1041,7 +1008,7 @@ Use an item.
 ```json
 {
   "data": {
-    "itemId": "uuid"
+    "itemId": 1
   }
 }
 ```
@@ -1057,16 +1024,6 @@ Use an item.
   }
   ```
 
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
-    }
-  }
-  ```
-
 #### POST /{playerId}/assets
 Add character asset.
 
@@ -1077,7 +1034,7 @@ Add character asset.
 ```json
 {
   "slot": "hair",
-  "assetId": "uuid"
+  "assetId": 1
 }
 ```
 
@@ -1086,22 +1043,11 @@ Add character asset.
 {
   "data": {
     "slot": "hair",
-    "assetId": "uuid",
+    "assetId": 1,
     "equipped": true
   }
 }
 ```
-
-**Error Responses:**
-- **400 Bad Request**
-  ```json
-  {
-    "error": {
-      "code": "INVALID_SLOT",
-      "message": "Invalid asset slot specified"
-    }
-  }
-  ```
 
 #### GET /{playerId}/appearance
 Get character appearance - list of all assets.
@@ -1114,25 +1060,17 @@ Get character appearance - list of all assets.
 {
   "data": {
     "assets": {
-      "hair": "uuid",
-      "shirt": "uuid",
-      "pants": "uuid",
-      "accessories": ["uuid", "uuid"]
+      "hair": 1,
+      "shirt": 1,
+      "pants": 2,
+      "accessories": [
+        1,
+        2
+      ]
     }
   }
 }
 ```
-
-**Error Responses:**
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
-    }
-  }
-  ```
 
 #### PUT /{playerId}/assets
 Update character asset.
@@ -1144,7 +1082,7 @@ Update character asset.
 ```json
 {
   "slot": "shirt",
-  "assetId": "uuid"
+  "assetId": 1
 }
 ```
 
@@ -1153,8 +1091,8 @@ Update character asset.
 {
   "data": {
     "slot": "shirt",
-    "previousAssetId": "uuid",
-    "newAssetId": "uuid"
+    "previousAssetId": 1,
+    "newAssetId": 1
   }
 }
 ```
@@ -1179,7 +1117,7 @@ Update character asset.
 {
   "lobbyId": "lobby_id",
   "rumourType": "player_role",
-  "targetPlayerId": "player_id"
+  "targetPlayerId": 1
 }
 ```
 
@@ -1490,13 +1428,13 @@ Assign daily tasks to a player by fetching their role and career from Game Servi
 ```json
 {
   "data": {
-    "playerId": "uuid",
-    "gameId": "uuid",
+    "playerId": 1,
+    "gameId": 1,
     "playerCareer": "teacher",
     "playerRole": "civilian",
     "tasks": [
       {
-        "id": "uuid",
+        "id": 1,
         "name": "Teach Class",
         "description": "Teach a class at the school",
         "reward": {
@@ -1507,7 +1445,7 @@ Assign daily tasks to a player by fetching their role and career from Game Servi
         "location": "school"
       },
       {
-        "id": "uuid",
+        "id": 1,
         "name": "Grade Papers",
         "description": "Grade student assignments",
         "reward": {
@@ -1549,7 +1487,7 @@ Get tasks assigned to a specific player.
 * `Authorization: Bearer <token>`
 
 **Query Parameters:**
-* `gameId` (required): UUID of the game
+* `gameId` (required): Long of the game
 * `dayNumber` (optional): Specific day number to filter tasks
 
 **Success Response (200):**
@@ -1558,7 +1496,7 @@ Get tasks assigned to a specific player.
   "data": {
     "tasks": [
       {
-        "id": "uuid",
+        "id": 1,
         "name": "Teach Class",
         "description": "Teach a class at the school",
         "reward": {
@@ -1601,7 +1539,7 @@ Update task completion status.
 ```json
 {
   "data": {
-    "taskId": "uuid",
+    "taskId": 1,
     "status": "completed",
     "reward": {
       "coins": 50,
@@ -1652,9 +1590,9 @@ Assign vote to a player.
 **Request Body:**
 ```json
 {
-  "gameId": "uuid",
-  "voterId": "uuid",
-  "targetPlayerId": "uuid"
+  "gameId": 1,
+  "voterId": 1,
+  "targetPlayerId": 1
 }
 ```
 
@@ -1662,9 +1600,9 @@ Assign vote to a player.
 ```json
 {
   "data": {
-    "voteId": "uuid",
-    "voterId": "uuid",
-    "targetPlayerId": "uuid"
+    "voteId": 1,
+    "voterId": 1,
+    "targetPlayerId": 1
   }
 }
 ```
@@ -1698,7 +1636,7 @@ Change an existing vote to target a different player.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": "uuid"
+  "targetPlayerId": 1
 }
 ```
 
@@ -1706,9 +1644,9 @@ Change an existing vote to target a different player.
 ```json
 {
   "data": {
-    "voteId": "uuid",
-    "voterId": "uuid",
-    "targetPlayerId": "uuid"
+    "voteId": 1,
+    "voterId": 1,
+    "targetPlayerId": 1
   }
 }
 ```
@@ -1754,15 +1692,15 @@ Get list of votes for a game.
   "data": {
     "votingSessions": [
       {
-        "sessionId": "uuid_of_session_1",
+        "sessionId": 1,
         "dayNumber": 1,
         "votes": [
           {
-            "targetPlayerId": "uuid_player_A",
+            "targetPlayerId": 1,
             "voteCount": 3
           },
           {
-            "targetPlayerId": "uuid_player_B",
+            "targetPlayerId": 1,
             "voteCount": 2
           }
         ],
@@ -1793,7 +1731,7 @@ Send voted-out player to Game Service.
 **Request Body:**
 ```json
 {
-  "gameId": "uuid",
+  "gameId": 1,
   "dayNumber": 1,
   "votedOutPlayerId": 13
 }
@@ -1803,7 +1741,7 @@ Send voted-out player to Game Service.
 ```json
 {
   "data": {
-    "gameId": "uuid",
+    "gameId": 1,
     "dayNumber": 1,
     "votedOutPlayerId": 13,
     "notifiedAt": "2023-10-01T20:00:00Z"
