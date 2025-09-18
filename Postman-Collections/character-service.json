@@ -1,0 +1,118 @@
+{
+	"info": {
+		"_postman_id": "20792e34-6263-437e-9a31-ffbcdb72f4cf",
+		"name": "Character Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Items",
+			"id": "43b3696f-cdca-4ece-9400-012281a1df24",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{domain}}/{playerId}/items"
+			},
+			"response": []
+		},
+		{
+			"name": "Add item",
+			"id": "6012c907-ec58-46c3-bcf2-4c8f425ab226",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"itemId\": \"7fdf0939-3553-4b7b-b002-5c8a86c71dc3\",\r\n  \"quantity\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{domain}}/{playerId}/items"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete item",
+			"id": "844047fa-4fd0-46de-bbee-5b92f0f4ce5c",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "{{domain}}/{playerId}/items/{itemId}"
+			},
+			"response": []
+		},
+		{
+			"name": "Use Item",
+			"id": "13559060-babb-4696-a032-72ebb1ea3dbc",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": "{{domain}}/{playerId}/items/{itemId}/use"
+			},
+			"response": []
+		},
+		{
+			"name": "Add Asset",
+			"id": "563e1011-bea2-45d0-a988-d4a83b57aa05",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"slot\": \"hair\",\r\n  \"assetId\": \"uuid\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{domain}}/{playerId}/assets"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Player Assets",
+			"id": "cb102ebf-c886-42d6-a826-07fbb581c2b7",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{domain}}/{playerId}/appearance"
+			},
+			"response": []
+		},
+		{
+			"name": "Update Asset",
+			"id": "db8a7fd7-5485-4e73-8747-10b79be56583",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": "{{domain}}/{playerId}/assets"
+			},
+			"response": []
+		}
+	]
+}
