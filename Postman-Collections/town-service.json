@@ -1,0 +1,96 @@
+{
+	"info": {
+		"_postman_id": "3c0c0e64-7823-4b2b-acc5-56aa2dd2a343",
+		"name": "Town Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get a location",
+			"id": "56d8f4d1-0f1c-4101-b437-9b1fb15ef016",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{domain}}/locations/{locationId}"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Movements",
+			"id": "73e44cc7-2457-457b-bda1-2f2a46518df7",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{domain}}/movements"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Locations",
+			"id": "dea1d375-c64a-4dbb-a93d-93dad19d174e",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{domain}}/locations"
+			},
+			"response": []
+		},
+		{
+			"name": "Move Player",
+			"id": "f33eb153-3735-442c-9165-58bc32601df8",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"playerId\": \"long\",\r\n  \"locationId\": \"uuid\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{domain}}/move"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Locations Copy",
+			"id": "f5d1d586-90cb-4751-97fb-7ef41c674894",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{domain}}/locations"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Player Movements",
+			"id": "3eb127ed-b8bf-402d-8465-8b578f98eafb",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{domain}}/movements/{playerId}"
+			},
+			"response": []
+		}
+	]
+}
