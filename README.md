@@ -777,6 +777,7 @@ Register night events - which contains who did what and to whom.
 
 ## 5. Town Service
 
+### Dockerhub image: 'dimaubuntu/town-service'
 
 #### GET /locations
 Retrieve all available locations.
@@ -912,7 +913,7 @@ Get all movements of a specific player.
 
 ## 6. Character Service
 
-
+### Dockerhub image: 'dimaubuntu/character-service'
 
 #### GET /{playerId}/items
 Get list of items for a player.
@@ -1062,7 +1063,7 @@ Get character appearance - list of all assets.
     "assets": {
       "hair": 1,
       "shirt": 1,
-      "pants": 2,
+      "pants": 1,
       "accessories": [
         1,
         2
