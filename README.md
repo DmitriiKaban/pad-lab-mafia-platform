@@ -49,7 +49,7 @@ The game continues with a cycle of day and night phases until one of two conditi
 - Shop Service: Manages the in-game item shop. It allows players to purchase items using their currency and includes an algorithm to balance item availability daily.
 - Roleplay Service: Governs the logic for role-specific abilities. It validates and executes player actions (e.g., a Mafia member performing a kill), records these actions, and generates filtered announcements (e.g., "A player was attacked last night") for the Game Service to broadcast.
 - Town Service: Manages the game world's locations. It tracks every player's movement between locations and reports these movements for other services to use.
-- Character Service: Manages player avatars and inventory. Keeps track of current customized assets and items purchased from the Shop. Once an asset is changed it disappears from inventory, while new one is added. Items can be used (e.g., garlic) or dropped.
+- Character Service: Manages player avatars and inventory. It handles character customization (assets, slots) and keeps track of items purchased from the Shop.
 - Rumors Service: Provides an information marketplace. Players can spend currency to buy pieces of information (rumors) about other players, sourced from their actions, appearance, or location.
 - Communication Service: Facilitates all in-game chat. It provides a global chat during the voting phase and private, secure chat channels for specific groups (e.g., Mafia members, players in the same location).
 - Task Service: Assigns daily tasks to players based on their role and career. It validates task completion and triggers currency rewards. The actions taken during tasks can become fodder for the Rumors Service.
@@ -152,9 +152,9 @@ Creates a new user account.
   "username": "string",
   "email": "string",
   "password": "string",
-  "identification": 1,
+  "identification": "string",
   "deviceInfo": "object",
-  "location": 1
+  "location": "string"
 }
 ```
 
@@ -162,8 +162,8 @@ Creates a new user account.
 ```json
 {
   "data": {
-    "id": 1,
-    "username": "string"
+    "id": "uuid",
+    "username": "string" 
   }
 }
 ```
@@ -198,7 +198,7 @@ Retrieves user profile information.
 ```json
 {
   "data": {
-    "id": 1,
+    "id": "uuid",
     "username": "string",
     "email": "string",
     "currency": {
@@ -230,7 +230,7 @@ Adds, substracts or sets a user's currency balance.
 ```json
 {
   "currency": "diamonds|coins",
-  "amount": 1,
+  "amount": "integer",
   "operation": "add|subtract|set"
 }
 ```
@@ -239,9 +239,9 @@ Adds, substracts or sets a user's currency balance.
 ```json
 {
  "data": {
-    "id": 1,
-    "newBalance": 1,
-    "transactionId": 1,
+    "id": "uuid",
+    "newBalance": "integer",
+    "transactionId": "uuid",
     "currency": "diamonds|coins"
   }
 }
@@ -274,9 +274,9 @@ Creates a new game lobby.
 **Request Body:**
 ```json
 {
-  "hostId": 1,
+  "hostId": "uuid",
   "lobbyName": "string",
-  "maxPlayers": 1
+  "maxPlayers": "integer"
 }
 ```
 
@@ -284,11 +284,11 @@ Creates a new game lobby.
 ```json
 {
   "data": {
-    "gameId": 1,
-    "lobbyId": 1,
-    "hostId": 1,
+    "gameId": "uuid",
+    "lobbyId": "uuid",
+    "hostId": "uuid",
     "status": "waiting_for_players",
-    "joinCode": 1
+    "joinCode": "string"
   }
 }
 ```
@@ -313,7 +313,7 @@ Join an existing game lobby.
 **Request Body:**
 ```json
 {
-  "id": 1
+  "id": "uuid"
 }
 ```
 
@@ -321,9 +321,9 @@ Join an existing game lobby.
 ```json
 {
   "data": {
-    "lobbyId": 1,
-    "currentPlayers": 1,
-    "maxPlayers": 1
+    "lobbyId": "uuid",
+    "currentPlayers": "integer",
+    "maxPlayers": "integer"
   }
 }
 ```
@@ -357,7 +357,7 @@ Start the game in the lobby.
 **Request Body:**
 ```json
 {
-  "hostId": 1
+  "hostId": "uuid"
 }
 ```
 
@@ -365,7 +365,7 @@ Start the game in the lobby.
 ```json
 {
   "data": {
-    "gameId": 1,
+    "gameId": "uuid",
     "status": "started",
     "players": "array"
   }
@@ -402,7 +402,7 @@ Get current game state.
 ```json
 {
   "data": {
-    "gameId": 1,
+    "gameId": "uuid",
     "phase": "day|night|voting|ended",
     "dayNumber": "number",
     "playersAlive": "array",
@@ -434,13 +434,13 @@ Get status of each player (alive/not alive).
   "data": {
     "players": [
       {
-        "playerId": 1,
-        "username": "string",
+        "playerId": "uuid",
+        "username": "player1",
         "status": "alive"
       },
       {
-        "playerId": 1,
-        "username": "string",
+        "playerId": "uuid",
+        "username": "player2",
         "status": "eliminated"
       }
     ]
@@ -457,7 +457,7 @@ Assign careers to players.
 **Request Body:**
 ```json
 {
-  "id": 1
+  "id": "uuid"
 }
 ```
 
@@ -465,8 +465,8 @@ Assign careers to players.
 ```json
 {
   "data": {
-    "playerId": 1,
-    "career": "string",
+    "playerId": "uuid",
+    "career": "teacher",
     "tasks": ["grade_papers", "teach_class"]
   }
 }
@@ -484,7 +484,7 @@ Get game events.
   "data": {
     "events": [
       {
-        "id": 1,
+        "id": "uuid",
         "type": "elimination",
         "message": "Player X was eliminated",
         "timestamp": "2023-10-01T12:00:00Z"
@@ -506,8 +506,8 @@ Get players and their roles.
   "data": {
     "players": [
       {
-        "playerId": 1,
-        "username": "string",
+        "playerId": "uuid",
+        "username": "player1",
         "role": "mafia|doctor|investigator|villager"
       }
     ]
@@ -524,7 +524,7 @@ Submit voting results.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": 1
+  "targetPlayerId": "uuid"
 }
 ```
 
@@ -533,7 +533,7 @@ Submit voting results.
 {
   "data": {
     "voteSubmitted": true,
-    "targetPlayerId": 1
+    "targetPlayerId": "uuid"
   }
 }
 ```
@@ -582,7 +582,7 @@ Purchase an item from the shop.
 **Request Body:**
 ```json
 {
-  "itemId": 1,
+  "itemId": "uuid",
   "quantity": 1
 }
 ```
@@ -591,8 +591,8 @@ Purchase an item from the shop.
 ```json
 {
   "data": {
-    "itemId": 1,
-    "itemName": "string",
+    "itemId": "uuid",
+    "itemName": "Garlic",
     "quantity": 1,
     "totalCost": 150,
     "remainingCurrency": {
@@ -641,7 +641,7 @@ Receive day/night update and automatically restock.
 **Request Body:**
 ```json
 {
-  "gameId": 1,
+  "gameId": "uuid",
   "phase": "night",
   "dayNumber": 2
 }
@@ -670,7 +670,7 @@ List available items in the shop.
   "data": {
     "items": [
       {
-        "id": 1,
+        "id": "uuid",
         "name": "Night Vision Goggles",
         "description": "See better during night phase",
         "price": {
@@ -683,6 +683,62 @@ List available items in the shop.
   }
 }
 ```
+
+#### POST /rumor-purchase
+
+Spend in-game currency to purchase a rumor.
+This endpoint validates if the player has enough currency, deducts the cost, and confirms the purchase. If the player lacks sufficient funds, it returns an error response.
+
+**Headers:**
+
+* `Authorization: Bearer <token>`
+
+**Request Body:**
+
+```json
+{
+  "gameId": "uuid",
+  "playerId": 12,
+  "rumorId": "uuid",
+  "cost": 50
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+  "data": {
+    "playerId": 12,
+    "rumorId": "uuid",
+    "remainingCurrency": 150,
+    "status": "PURCHASED"
+  }
+}
+```
+
+**Error Responses:**
+
+* **400 Bad Request**
+
+  ```json
+  {
+    "error": {
+      "code": "INVALID_RUMOR",
+      "message": "The requested rumor does not exist or cannot be purchased"
+    }
+  }
+  ```
+* **402 Payment Required**
+
+  ```json
+  {
+    "error": {
+      "code": "INSUFFICIENT_FUNDS",
+      "message": "Not enough currency to purchase this rumor"
+    }
+  }
+  ```
 
 ---
 
@@ -699,7 +755,7 @@ Update day/night phase.
 **Request Body:**
 ```json
 {
-  "gameId": 1,
+  "gameId": "uuid",
   "newPhase": "night",
   "dayNumber": 2
 }
@@ -709,7 +765,7 @@ Update day/night phase.
 ```json
 {
   "data": {
-    "gameId": 1,
+    "gameId": "uuid",
     "phase": "night",
     "dayNumber": 2
   }
@@ -726,17 +782,91 @@ Update day/night phase.
     }
   }
   ```
+  
+#### GET /night-actions
 
-#### POST /night-events
-Register night events - which contains who did what and to whom.
+Retrieve all possible actions for a player during the current night phase, based on their role.
+This endpoint helps normalize the actions submitted later and ensures consistent integration.
 
 **Headers:**
-- `Authorization: Bearer <token>`
 
-**Request Body:**
+* `Authorization: Bearer <token>`
+
+**Query Parameters:**
+
+* `gameId` (required) — The game UUID.
+* `playerId` (required) — The player’s ID.
+
+**Example Request:**
+
+```
+GET /night-actions?gameId=uuid&playerId=12
+```
+
+**Success Response (200):**
+
 ```json
 {
-  "gameId": 1,
+  "data": [
+    {
+      "action": "eliminate",
+      "requiresTarget": true,
+      "description": "Attempt to eliminate another player"
+    },
+    {
+      "action": "guard",
+      "requiresTarget": true,
+      "description": "Protect another player from elimination"
+    },
+    {
+      "action": "skip",
+      "requiresTarget": false,
+      "description": "Take no action this night"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+* **400 Bad Request**
+
+  ```json
+  {
+    "error": {
+      "code": "INVALID_PLAYER",
+      "message": "Player does not exist in this game"
+    }
+  }
+  ```
+* **403 Forbidden**
+
+  ```json
+  {
+    "error": {
+      "code": "NOT_NIGHT_PHASE",
+      "message": "Actions can only be retrieved during the night phase"
+    }
+  }
+  ```
+
+---
+
+
+
+#### POST /night-events
+
+Register night events – which contains who did what and to whom.
+
+**Headers:**
+
+* `Authorization: Bearer <token>`
+
+**Request Body:**
+
+```json
+{
+  "gameId": "uuid",
   "playerId": 12,
   "action": "eliminate",
   "targetPlayerId": 13
@@ -744,17 +874,20 @@ Register night events - which contains who did what and to whom.
 ```
 
 **Success Response (201):**
+
 ```json
 {
   "data": {
-    "eventId": 1,
+    "eventId": "uuid",
     "action": "eliminate"
   }
 }
 ```
 
 **Error Responses:**
-- **400 Bad Request**
+
+* **400 Bad Request**
+
   ```json
   {
     "error": {
@@ -763,7 +896,8 @@ Register night events - which contains who did what and to whom.
     }
   }
   ```
-- **409 Conflict**
+* **409 Conflict**
+
   ```json
   {
     "error": {
@@ -778,6 +912,7 @@ Register night events - which contains who did what and to whom.
 ## 5. Town Service
 
 
+
 #### GET /locations
 Retrieve all available locations.
 
@@ -790,7 +925,7 @@ Retrieve all available locations.
   "data": {
     "locations": [
       {
-        "id": 1,
+        "id": "uuid",
         "name": "School",
         "description": "Education center"
       }
@@ -809,7 +944,7 @@ Get details of a specific location.
 ```json
 {
   "data": {
-    "id": 1,
+    "id": "uuid",
     "name": "School",
     "description": "Education center"
   }
@@ -827,7 +962,7 @@ Get details of a specific location.
   }
   ```
 
-#### GET /movements/{lobbyId}
+#### GET /movements
 Get movement of all players.
 
 **Headers:**
@@ -839,8 +974,8 @@ Get movement of all players.
   "data": {
     "movements": [
       {
-        "playerId": 1,
-        "locationId": 1,
+        "playerId": 12,
+        "locationId": "uuid",
         "timestamp": "2023-10-01T12:00:00Z"
       }
     ]
@@ -857,9 +992,8 @@ Movement depending on location and day.
 **Request Body:**
 ```json
 {
-  "lobbyId": 1,
-  "playerId": 1,
-  "locationId": 1
+  "playerId": 12,
+  "locationId": "uuid"
 }
 ```
 
@@ -867,9 +1001,9 @@ Movement depending on location and day.
 ```json
 {
   "data": {
-    "playerId": 1,
-    "fromLocationId": 1,
-    "toLocationId": 1,
+    "playerId": 12,
+    "fromLocationId": "uuid",
+    "toLocationId": "uuid",
     "timestamp": "2023-10-01T12:00:00Z"
   }
 }
@@ -886,7 +1020,7 @@ Movement depending on location and day.
   }
   ```
 
-#### GET /movements/{lobbyId}/{playerId}
+#### GET /movements/{playerId}
 Get all movements of a specific player.
 
 **Headers:**
@@ -896,10 +1030,10 @@ Get all movements of a specific player.
 ```json
 {
   "data": {
-    "playerId": 1,
+    "playerId": 12,
     "movements": [
       {
-        "locationId": 1,
+        "locationId": "uuid",
         "locationName": "School",
         "timestamp": "2023-10-01T12:00:00Z"
       }
@@ -907,6 +1041,17 @@ Get all movements of a specific player.
   }
 }
 ```
+
+**Error Responses:**
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "PLAYER_NOT_FOUND",
+      "message": "Player does not exist"
+    }
+  }
+  ```
 
 ---
 
@@ -926,13 +1071,25 @@ Get list of items for a player.
   "data": {
     "items": [
       {
-        "id": 1,
+        "id": "uuid",
+        "name": "Night Vision Goggles",
         "quantity": 1
       }
     ]
   }
 }
 ```
+
+**Error Responses:**
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "PLAYER_NOT_FOUND",
+      "message": "Player does not exist"
+    }
+  }
+  ```
 
 #### POST /{playerId}/items
 Add item to player's inventory.
@@ -943,7 +1100,7 @@ Add item to player's inventory.
 **Request Body:**
 ```json
 {
-  "itemId": 1,
+  "itemId": "uuid",
   "quantity": 1
 }
 ```
@@ -954,7 +1111,8 @@ Add item to player's inventory.
 ```json
 {
   "data": {
-    "itemId": 1,
+    "itemId": "uuid",
+    "quantity": 1,
     "totalQuantity": 2
   }
 }
@@ -981,7 +1139,7 @@ Drop/delete item from inventory.
 ```json
 {
   "data": {
-    "itemId": 1,
+    "itemId": "uuid",
     "removed": true
   }
 }
@@ -997,6 +1155,15 @@ Drop/delete item from inventory.
     }
   }
   ```
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "PLAYER_NOT_FOUND",
+      "message": "Player does not exist"
+    }
+  }
+  ```
 
 #### POST /{playerId}/items/{itemId}/use
 Use an item.
@@ -1008,7 +1175,7 @@ Use an item.
 ```json
 {
   "data": {
-    "itemId": 1
+    "itemId": "uuid"
   }
 }
 ```
@@ -1024,6 +1191,16 @@ Use an item.
   }
   ```
 
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "PLAYER_NOT_FOUND",
+      "message": "Player does not exist"
+    }
+  }
+  ```
+
 #### POST /{playerId}/assets
 Add character asset.
 
@@ -1034,7 +1211,7 @@ Add character asset.
 ```json
 {
   "slot": "hair",
-  "assetId": 1
+  "assetId": "uuid"
 }
 ```
 
@@ -1043,11 +1220,22 @@ Add character asset.
 {
   "data": {
     "slot": "hair",
-    "assetId": 1,
+    "assetId": "uuid",
     "equipped": true
   }
 }
 ```
+
+**Error Responses:**
+- **400 Bad Request**
+  ```json
+  {
+    "error": {
+      "code": "INVALID_SLOT",
+      "message": "Invalid asset slot specified"
+    }
+  }
+  ```
 
 #### GET /{playerId}/appearance
 Get character appearance - list of all assets.
@@ -1060,17 +1248,25 @@ Get character appearance - list of all assets.
 {
   "data": {
     "assets": {
-      "hair": 1,
-      "shirt": 1,
-      "pants": 2,
-      "accessories": [
-        1,
-        2
-      ]
+      "hair": "uuid",
+      "shirt": "uuid",
+      "pants": "uuid",
+      "accessories": ["uuid", "uuid"]
     }
   }
 }
 ```
+
+**Error Responses:**
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "PLAYER_NOT_FOUND",
+      "message": "Player does not exist"
+    }
+  }
+  ```
 
 #### PUT /{playerId}/assets
 Update character asset.
@@ -1082,7 +1278,7 @@ Update character asset.
 ```json
 {
   "slot": "shirt",
-  "assetId": 1
+  "assetId": "uuid"
 }
 ```
 
@@ -1091,8 +1287,8 @@ Update character asset.
 {
   "data": {
     "slot": "shirt",
-    "previousAssetId": 1,
-    "newAssetId": 1
+    "previousAssetId": "uuid",
+    "newAssetId": "uuid"
   }
 }
 ```
@@ -1117,7 +1313,7 @@ Update character asset.
 {
   "lobbyId": "lobby_id",
   "rumourType": "player_role",
-  "targetPlayerId": 1
+  "targetPlayerId": "player_id"
 }
 ```
 
@@ -1418,77 +1614,13 @@ Update character asset.
 
 ## 9. Task Service
 
-#### POST /tasks/assign/{gameId}/{playerId}
-Assign daily tasks to a player by fetching their role and career from Game Service, then assigning tasks based on their career.
+
+
+#### GET /player/{playerId}
+Get tasks based on player.
 
 **Headers:**
-* `Authorization: Bearer <token>`
-
-**Success Response (201):**
-```json
-{
-  "data": {
-    "playerId": 1,
-    "gameId": 1,
-    "playerCareer": "teacher",
-    "playerRole": "civilian",
-    "tasks": [
-      {
-        "id": 1,
-        "name": "Teach Class",
-        "description": "Teach a class at the school",
-        "reward": {
-          "coins": 50,
-          "diamonds": 0
-        },
-        "status": "available",
-        "location": "school"
-      },
-      {
-        "id": 1,
-        "name": "Grade Papers",
-        "description": "Grade student assignments",
-        "reward": {
-          "coins": 30,
-          "diamonds": 0
-        },
-        "status": "available",
-        "location": "school"
-      }
-    ]
-  }
-}
-```
-
-**Error Responses:**
-* **400 Bad Request**
-  ```json
-  {
-    "error": {
-      "code": "TASKS_ALREADY_ASSIGNED",
-      "message": "Tasks have already been assigned for this day"
-    }
-  }
-  ```
-* **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist in the specified game"
-    }
-  }
-  ```
-
-#### GET /player/{playerId}/tasks
-Get tasks assigned to a specific player.
-
-**Headers:**
-* `Authorization: Bearer <token>`
-
-**Query Parameters:**
-* `gameId` (required): Long of the game
-* `dayNumber` (optional): Specific day number to filter tasks
+- `Authorization: Bearer <token>`
 
 **Success Response (200):**
 ```json
@@ -1496,7 +1628,7 @@ Get tasks assigned to a specific player.
   "data": {
     "tasks": [
       {
-        "id": 1,
+        "id": "uuid",
         "name": "Teach Class",
         "description": "Teach a class at the school",
         "reward": {
@@ -1511,22 +1643,11 @@ Get tasks assigned to a specific player.
 }
 ```
 
-**Error Responses:**
-* **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
-    }
-  }
-  ```
-
 #### PUT /tasks/{taskId}/status
-Update task completion status.
+Update task status.
 
 **Headers:**
-* `Authorization: Bearer <token>`
+- `Authorization: Bearer <token>`
 
 **Request Body:**
 ```json
@@ -1539,27 +1660,19 @@ Update task completion status.
 ```json
 {
   "data": {
-    "taskId": 1,
+    "taskId": "uuid",
     "status": "completed",
     "reward": {
       "coins": 50,
       "diamonds": 0
-    }
+    },
+    "completedAt": "2023-10-01T12:00:00Z"
   }
 }
 ```
 
 **Error Responses:**
-* **400 Bad Request**
-  ```json
-  {
-    "error": {
-      "code": "INVALID_STATUS_TRANSITION",
-      "message": "Cannot change status from current state"
-    }
-  }
-  ```
-* **404 Not Found**
+- **404 Not Found**
   ```json
   {
     "error": {
@@ -1568,18 +1681,12 @@ Update task completion status.
     }
   }
   ```
-* **403 Forbidden**
-  ```json
-  {
-    "error": {
-      "code": "DEADLINE_EXCEEDED",
-      "message": "Task deadline has passed, cannot complete task"
-    }
-  }
-  ```
+
 ---
 
 ## 10. Voting Service
+
+
 
 #### POST /vote
 Assign vote to a player.
@@ -1590,9 +1697,9 @@ Assign vote to a player.
 **Request Body:**
 ```json
 {
-  "gameId": 1,
-  "voterId": 1,
-  "targetPlayerId": 1
+  "gameId": "uuid",
+  "voterId": 12,
+  "targetPlayerId": 13
 }
 ```
 
@@ -1600,9 +1707,10 @@ Assign vote to a player.
 ```json
 {
   "data": {
-    "voteId": 1,
-    "voterId": 1,
-    "targetPlayerId": 1
+    "voteId": "uuid",
+    "voterId": 12,
+    "targetPlayerId": 13,
+    "timestamp": "2023-10-01T12:00:00Z"
   }
 }
 ```
@@ -1627,59 +1735,6 @@ Assign vote to a player.
   }
   ```
 
-#### PUT /vote/{voteId}
-Change an existing vote to target a different player.
-
-**Headers:**
-- `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "targetPlayerId": 1
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "data": {
-    "voteId": 1,
-    "voterId": 1,
-    "targetPlayerId": 1
-  }
-}
-```
-
-**Error Responses:**
-- **400 Bad Request**
-  ```json
-  {
-    "error": {
-      "code": "VOTING_NOT_ACTIVE",
-      "message": "Voting phase is not currently active"
-    }
-  }
-  ```
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "VOTE_NOT_FOUND",
-      "message": "Vote does not exist or does not belong to the authenticated user"
-    }
-  }
-  ```
-- **403 Forbidden**
-  ```json
-  {
-    "error": {
-      "code": "UNAUTHORIZED_VOTE_CHANGE",
-      "message": "You can only change your own votes"
-    }
-  }
-  ```
-
 #### GET /votes/{gameId}
 Get list of votes for a game.
 
@@ -1692,15 +1747,15 @@ Get list of votes for a game.
   "data": {
     "votingSessions": [
       {
-        "sessionId": 1,
+        "sessionId": "uuid_of_session_1",
         "dayNumber": 1,
         "votes": [
           {
-            "targetPlayerId": 1,
+            "targetPlayerId": 12,
             "voteCount": 3
           },
           {
-            "targetPlayerId": 1,
+            "targetPlayerId": 13,
             "voteCount": 2
           }
         ],
@@ -1731,7 +1786,7 @@ Send voted-out player to Game Service.
 **Request Body:**
 ```json
 {
-  "gameId": 1,
+  "gameId": "uuid",
   "dayNumber": 1,
   "votedOutPlayerId": 13
 }
@@ -1741,7 +1796,7 @@ Send voted-out player to Game Service.
 ```json
 {
   "data": {
-    "gameId": 1,
+    "gameId": "uuid",
     "dayNumber": 1,
     "votedOutPlayerId": 13,
     "notifiedAt": "2023-10-01T20:00:00Z"
