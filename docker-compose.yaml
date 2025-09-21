@@ -26,6 +26,19 @@ services:
     networks:
       - app_network
 
+  db_user_management_service:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: ${USER_MANAGEMENT_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${USER_MANAGEMENT_SERVICE_POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - user_management_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
   town_service:
     image: dimaubuntu/town-service:0.3
     environment:
@@ -58,9 +71,26 @@ services:
     networks:
       - app_network
 
+  user_management_service:
+    image: alexandrina581/user-management-service:latest
+    environment:
+      USER_MANAGEMENT_SERVICE_POSTGRES_HOST: db_user_management_service
+      USER_MANAGEMENT_SERVICE_POSTGRES_DB_PORT: 5432
+      USER_MANAGEMENT_SERVICE_POSTGRES_USER: ${USER_MANAGEMENT_SERVICE_POSTGRES_USER}
+      USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD: ${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}
+      USER_MANAGEMENT_SERVICE_POSTGRES_DB: ${USER_MANAGEMENT_SERVICE_POSTGRES_DB}
+    command: uvicorn app.main:app --host 0.0.0.0 --port 80
+    ports:
+      - "8000:80"
+    depends_on:
+      - db_user_management_service
+    networks:
+      - app_network
+
 volumes:
   town_postgres_data:
   character_postgres_data:
+  user_management_postgres_data:
 
 networks:
   app_network:
