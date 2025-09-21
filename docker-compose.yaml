@@ -1,0 +1,66 @@
+version: '3.8'
+services:
+  db_town_service:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${TOWN_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${TOWN_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${TOWN_SERVICE_POSTGRES_DB}
+    ports:
+      - "${TOWN_SERVICE_POSTGRES_DB_PORT}:5432"
+    volumes:
+      - town_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  db_character_service:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${CHARACTER_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${CHARACTER_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${CHARACTER_SERVICE_POSTGRES_DB}
+    ports:
+      - "${CHARACTER_SERVICE_POSTGRES_DB_PORT}:5432"
+    volumes:
+      - character_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  town_service:
+    image: dimaubuntu/town-service:0.3
+    environment:
+      TOWN_SERVICE_POSTGRES_HOST: db_town_service
+      TOWN_SERVICE_POSTGRES_DB_PORT: 5432
+      TOWN_SERVICE_POSTGRES_USER: ${TOWN_SERVICE_POSTGRES_USER}
+      TOWN_SERVICE_POSTGRES_PASSWORD: ${TOWN_SERVICE_POSTGRES_PASSWORD}
+      TOWN_SERVICE_POSTGRES_DB: ${TOWN_SERVICE_POSTGRES_DB}
+      SERVER_PORT: 8080
+    ports:
+      - "8082:8080"  # Changed external port to 8082
+    depends_on:
+      - db_town_service
+    networks:
+      - app_network
+
+  character_service:
+    image: dimaubuntu/character-service:0.3
+    environment:
+      CHARACTER_SERVICE_POSTGRES_HOST: db_character_service
+      CHARACTER_SERVICE_POSTGRES_DB_PORT: 5432
+      CHARACTER_SERVICE_POSTGRES_USER: ${CHARACTER_SERVICE_POSTGRES_USER}
+      CHARACTER_SERVICE_POSTGRES_PASSWORD: ${CHARACTER_SERVICE_POSTGRES_PASSWORD}
+      CHARACTER_SERVICE_POSTGRES_DB: ${CHARACTER_SERVICE_POSTGRES_DB}
+      SERVER_PORT: 8081
+    ports:
+      - "8083:8081"  # Changed external port to 8083
+    depends_on:
+      - db_character_service
+    networks:
+      - app_network
+
+volumes:
+  town_postgres_data:
+  character_postgres_data:
+
+networks:
+  app_network:
