@@ -1,0 +1,215 @@
+{
+	"info": {
+		"_postman_id": "bdaa7d31-506c-4e9f-bea4-899411f10f0c",
+		"name": "user-management-service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39119824"
+	},
+	"item": [
+		{
+			"name": "Register User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"username\": \"Steve\",\r\n\"password\": \"ligfghjk561056\",\r\n\"email\": \"steveroberts@gmail.com\",\r\n\"identification\": \"396525374\",\r\n\"deviceInfo\": \"iphone\",\r\n\"location\": \"Chicago\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/register",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"username\": \"Danna\",\r\n\"password\": \"asdfghjk56658\",\r\n\"deviceInfo\": \"iphone\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/login",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Profile",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJEYW5uYSIsImV4cCI6MTc1ODE0NTcyMn0.cSNTg1HNS3HkF7LwiVUJqrFBNTAI41grbaHkVyHIZ_I",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseURL}}/profile/2",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"profile",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add diamonds",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJEYW5uYSIsImV4cCI6MTc1ODE0NTcyMn0.cSNTg1HNS3HkF7LwiVUJqrFBNTAI41grbaHkVyHIZ_I",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"currency\": \"diamonds\",\r\n  \"amount\": 100,\r\n  \"operation\": \"add\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/currency/2",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"currency",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Substract diamonds",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJEYW5uYSIsImV4cCI6MTc1ODE0NTcyMn0.cSNTg1HNS3HkF7LwiVUJqrFBNTAI41grbaHkVyHIZ_I",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"currency\": \"diamonds\",\r\n  \"amount\": 15,\r\n  \"operation\": \"subtract\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/currency/2",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"currency",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Set coins",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJEYW5uYSIsImV4cCI6MTc1ODE0NTcyMn0.cSNTg1HNS3HkF7LwiVUJqrFBNTAI41grbaHkVyHIZ_I",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"currency\": \"coins\",\r\n  \"amount\": 125,\r\n  \"operation\": \"set\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/currency/2",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"currency",
+						"2"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
