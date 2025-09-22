@@ -108,7 +108,75 @@ All request and response bodies are in **JSON** format.
 
 
 ## 1. User Management Service
+___
 
+### Dockerhub image: 'alexandrina581/user-management-service'
+
+___
+
+### Requires Environment Configuration
+Create your `.env` file based on the template:
+```bash
+cp .env.template .env
+```
+
+Then edit the `.env` file with your configuration:
+```env
+USER_MANAGEMENT_SERVICE_POSTGRES_USER=postgres
+USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD=your_password_here
+USER_MANAGEMENT_SERVICE_POSTGRES_DB=user_management_service
+USER_MANAGEMENT_SERVICE_POSTGRES_HOST=db
+USER_MANAGEMENT_SERVICE_POSTGRES_PORT=5432
+
+SECRET_KEY=your_secret_key_here
+ALGORITHM=HS256
+```
+---
+
+#### POST /register
+Creates a new user account.
+
+**Request Body:**
+```json
+{
+  "username": "string",
+  "email": "string",
+  "password": "string",
+  "identification": "string",
+  "deviceInfo": "object",
+  "location": "string"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "data": {
+    "id": 1,
+    "username": "string" 
+  }
+}
+```
+
+**Error Responses:**
+- **409 Conflict**
+  ```json
+  {
+    "error": {
+      "code": "USER_ALREADY_EXISTS",
+      "message": "Username or email already exists"
+    }
+  }
+  ```
+- **400 Bad Request**
+  ```json
+  {
+    "error": {
+      "code": "VALIDATION_ERROR",
+      "message": "Password must be at least 8 characters long"
+    }
+  }
+  ```
 
 #### POST /login
 Authenticates user and returns JWT token.
@@ -133,57 +201,12 @@ Authenticates user and returns JWT token.
 ```
 
 **Error Responses:**
-**401 Unauthorized**
+- **401 Unauthorized**
   ```json
   {
     "error": {
       "code": "INVALID_CREDENTIALS",
       "message": "Invalid username or password"
-    }
-  }
-  ```
-
-#### POST /register
-Creates a new user account.
-
-**Request Body:**
-```json
-{
-  "username": "string",
-  "email": "string",
-  "password": "string",
-  "identification": 1,
-  "deviceInfo": "object",
-  "location": 1
-}
-```
-
-**Success Response (201):**
-```json
-{
-  "data": {
-    "id": 1,
-    "username": "string"
-  }
-}
-```
-
-**Error Responses:**
-- **409 Conflict**
-  ```json
-  {
-    "error": {
-      "code": "USER_ALREADY_EXISTS",
-      "message": "Username or email already exists"
-    }
-  }
-  ```
-- **400 Bad Request**
-  ```json
-  {
-    "error": {
-      "code": "VALIDATION_ERROR",
-      "message": "Password must be at least 8 characters long"
     }
   }
   ```
@@ -219,9 +242,27 @@ Retrieves user profile information.
     }
   }
   ```
+- **403 Forbidden**
+  ```json
+  {
+    "error": {
+      "code": "FORBIDDEN",
+      "message": "Not authorized to access this profile"
+    }
+  }
+  ```
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "USER_NOT_FOUND",
+      "message": "User not found"
+    }
+  }
+  ```
 
 #### PUT /currency/{id}
-Adds, substracts or sets a user's currency balance.
+Adds, subtracts or sets a user's currency balance.
 
 **Headers:**
 - `Authorization: Bearer <token>`
@@ -229,31 +270,66 @@ Adds, substracts or sets a user's currency balance.
 **Request Body:**
 ```json
 {
-  "currency": "diamonds|coins",
+  "currency": "diamonds",
   "amount": 1,
-  "operation": "add|subtract|set"
+  "operation": "add"
 }
 ```
 
 **Success Response (200):**
 ```json
 {
- "data": {
+  "data": {
     "id": 1,
-    "newBalance": 1,
+    "newBalance": 11,
     "transactionId": 1,
-    "currency": "diamonds|coins"
+    "currency": "diamonds"
   }
 }
 ```
 
 **Error Responses:**
+- **400 Bad Request**
+  ```json
+  {
+    "error": {
+      "code": "INSUFFICIENT_FUNDS",
+      "message": "You do not have enough {currency_type} balance"
+    }
+  }
+  ```
+  ```json
+  {
+    "error": {
+      "code": "INVALID_AMOUNT",
+      "message": "Balance cannot be set to a negative value"
+    }
+  }
+  ```
 - **401 Unauthorized**
   ```json
   {
     "error": {
       "code": "INVALID_TOKEN",
       "message": "Invalid or expired token"
+    }
+  }
+  ```
+- **403 Forbidden**
+  ```json
+  {
+    "error": {
+      "code": "FORBIDDEN",
+      "message": "Not authorized to update this user's currency"
+    }
+  }
+  ```
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "USER_NOT_FOUND",
+      "message": "User not found"
     }
   }
   ```
