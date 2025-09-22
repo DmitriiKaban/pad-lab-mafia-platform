@@ -1103,22 +1103,21 @@ Update character asset.
 ## 7. Rumours Service
 
 
+**Docker Hub Repository:** `m1rrerror/mafia-rumours-service`
+
 
 ### Buy a rumour
 
-**Endpoint:** `POST /api/purchase-rumour`
+**Endpoint:** `POST /api/rumours/{lobbyId}/purchase`
 
-**Description:** Buys a random rumour in the specified lobby.
-
-**Headers:**
-- `Authorization: Bearer <token>`
+**Description:** Buys a rumour in the specified lobby.
 
 **Request Body:**
 ```json
 {
-  "lobbyId": "lobby_id",
-  "rumourType": "player_role",
-  "targetPlayerId": 1
+  "rumourType": "role",
+  "senderId": 0,
+  "targetId": 1
 }
 ```
 
@@ -1151,7 +1150,87 @@ Update character asset.
   }
   ```
 
+
+---
+
+### Get user's purchased rumours
+
+**Endpoint:** `GET /api/rumours/{lobbyId}/user/{userId}`
+
+**Description:** Gets all purchased rumours for the specified user in the specified lobby.
+
+**Success Response (200):**
+```json
+{
+  [
+    {
+      "id": 1,
+      "lobbyId": "test",
+      "type": "role",
+      "ownerId": 0,
+      "targetId": 1,
+      "text": "Player X was seen near the victim's house last night",
+      "createdAt": "2025-10-01T12:00:00Z"
+    },
+    {
+      "id": 2,
+      "lobbyId": "test",
+      "type": "role",
+      "ownerId": 0,
+      "targetId": 2,
+      "text": "Player Y has been acting suspiciously",
+      "createdAt": "2025-10-01T12:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## 8. Communication Service
+
+
+**Docker Hub Repository:** `m1rrerror/mafia-communication-service`
+
+
+## API Reference
+
+---
+
+### Get Lobby
+
+**Endpoint:** `GET /api/chat/lobby/{lobbyId}`
+
+**Description:** Retrieves the specified lobby.
+
+**Success Response (200):**
+
+```json
+{
+  "id": "test",
+  "privateChannels": {
+    "detectives": {
+      "name": "detectives",
+      "members": {
+        "2": true,
+        "3": true
+      }
+    },
+    "mafia": {
+      "name": "mafia",
+      "members": {
+        "0": true,
+        "1": true
+      }
+    }
+  }
+}
+```
+
+**Error Responses:**
+
 **404 Not Found**
+
 ```json
 {
   "error": {
@@ -1161,13 +1240,70 @@ Update character asset.
 }
 ```
 
+
 ---
 
-## 8. Communication Service
+### Create Lobby
 
+**Endpoint:** `POST /api/chat/lobby/create`
 
+**Description:** Retrieves the specified lobby.
 
-## API Reference
+**Request Body:**
+
+```json
+{
+    "lobbyId": "test",
+    "privateChannels": [
+        {
+            "channelName": "mafia",
+            "memberIds": [0, 1]
+        },
+        {
+            "channelName": "detectives",
+            "memberIds": [2, 3]
+        }
+    ]
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+  "id": "test",
+  "privateChannels": {
+    "detectives": {
+      "name": "detectives",
+      "members": {
+        "2": true,
+        "3": true
+      }
+    },
+    "mafia": {
+      "name": "mafia",
+      "members": {
+        "0": true,
+        "1": true
+      }
+    }
+  }
+}
+```
+
+**Error Responses:**
+
+**400 Bad Request**
+
+```json
+{
+  "error": {
+    "code": "LOBBY_EXISTS",
+    "message": "Lobby already exists"
+  }
+}
+```
+
 
 ---
 
@@ -1186,10 +1322,11 @@ Update character asset.
 **Success Response (200):**
 ```json
 {
+  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
   "senderId": 123,
-  "senderName": "PlayerOne",
-  "content": "Hello everyone!",
-  "timestamp": "2025-09-10T14:30:45.123Z"
+  "senderName": "TestUser",
+  "content": "Hello, world!",
+  "timestamp": "2025-09-09T20:30:00.123Z"
 }
 ```
 
@@ -1211,16 +1348,6 @@ Update character asset.
   "error": {
     "code": "CHAT_DISABLED",
     "message": "Global chat is currently disabled for this lobby"
-  }
-}
-```
-
-**401 Unauthorized**
-```json
-{
-  "error": {
-    "code": "INVALID_TOKEN",
-    "message": "Invalid or expired token"
   }
 }
 ```
@@ -1253,10 +1380,12 @@ Update character asset.
 **Success Response (200):**
 ```json
 {
-  "senderId": 456,
-  "senderName": "MafiaPlayer",
-  "content": "We should eliminate PlayerOne tonight",
-  "timestamp": "2025-09-10T14:32:15.789Z"
+  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+  "channelName": "detectives",
+  "senderId": 123,
+  "senderName": "TestUser",
+  "content": "Hello, world!",
+  "timestamp": "2025-09-09T20:30:00.123Z"
 }
 ```
 
@@ -1268,16 +1397,6 @@ Update character asset.
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "Sender name must be between 2 and 50 characters"
-  }
-}
-```
-
-**401 Unauthorized**
-```json
-{
-  "error": {
-    "code": "INVALID_TOKEN",
-    "message": "Invalid or expired token"
   }
 }
 ```
@@ -1348,9 +1467,164 @@ Update character asset.
 }
 ```
 
+
+---
+
+### Get Global Chat History
+
+**Endpoint:** `GET /api/chat/global/{lobbyId}/history`
+
+**Description:** Retrieves the history of messages in the global chat for the specified lobby.
+
+**URL Parameters:**
+
+* `lobbyId` *(string)* – Unique lobby identifier.
+
+**Success Response (200):**
+
+```json
+[
+  {
+    "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+    "senderId": 123,
+    "senderName": "TestUser",
+    "content": "Hello, world!",
+    "timestamp": "2025-09-09T20:30:00.123Z"
+  },
+  {
+    "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+    "senderId": 456,
+    "senderName": "AnotherUser",
+    "content": "Welcome!",
+    "timestamp": "2025-09-09T20:31:10.456Z"
+  }
+]
+```
+
+**Error Responses:**
+
+**404 Not Found**
+
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
+---
+
+### Get Private Chat History
+
+**Endpoint:** `GET /api/chat/private/{lobbyId}/{channelName}/history?userId={userId}`
+
+**Description:** Retrieves the message history of a private chat channel for the specified user.
+
+**URL Parameters:**
+
+* `lobbyId` *(string)* – Lobby identifier.
+* `channelName` *(string)* – Private channel name.
+* `userId` *(long, query)* – The requesting user's ID (used for access validation).
+
+**Success Response (200):**
+
+```json
+[
+  {
+    "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+    "channelName": "detectives",
+    "senderId": 123,
+    "senderName": "TestUser",
+    "content": "We should meet tonight.",
+    "timestamp": "2025-09-09T20:30:00.123Z"
+  },
+  {
+    "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+    "channelName": "detectives",
+    "senderId": 456,
+    "senderName": "AnotherUser",
+    "content": "Agreed.",
+    "timestamp": "2025-09-09T20:32:20.789Z"
+  }
+]
+```
+
+**Error Responses:**
+
+**403 Forbidden**
+
+```json
+{
+  "error": {
+    "code": "ACCESS_DENIED",
+    "message": "You do not have access to this private channel's history"
+  }
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": {
+    "code": "CHANNEL_NOT_FOUND",
+    "message": "Channel does not exist"
+  }
+}
+```
+
+
+---
+
+### Get Private Chat Channels
+
+**Endpoint:** `GET /api/chat/private/{lobbyId}/channels`
+
+**Description:** Retrieves the available private chat channels for the specified lobby.
+
+**Success Response (200):**
+
+```json
+[
+  "detectives",
+  "mafia"
+]
+```
+
+**Error Responses:**
+
+**404 Not Found**
+
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
+
 ---
 
 ## SignalR Hub Reference
+
+**Endpoint**: `WS /chathub`
+
+**Description**: Provides real-time communication between clients and the server.
 
 ### Server Methods (Client → Server)
 
@@ -1398,8 +1672,33 @@ Update character asset.
 
 ### ChatResponse Model
 
+| Field       | Type     | Description               |
+|-------------|----------|---------------------------|
+| `lobbyId`   | string   | Lobby identifier          |
+| `senderId`  | long     | ID of the sender          |
+| `senderName`| string   | Name of the sender        |
+| `content`   | string   | Message content           |
+| `timestamp` | DateTime | UTC timestamp from server |
+
+**Example:**
+```json
+{
+  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+  "senderId": 123,
+  "senderName": "TestUser",
+  "content": "Hello, world!",
+  "timestamp": "2025-09-09T20:30:00.123Z"
+}
+```
+
+---
+
+### PrivateChatResponse Model
+
 | Field       | Type     | Description |
 |-------------|----------|-------------|
+| `channelName` | string | Name of the channel |
+| `lobbyId`   | string   | Lobby identifier |
 | `senderId`  | long     | ID of the sender |
 | `senderName`| string   | Name of the sender |
 | `content`   | string   | Message content |
@@ -1408,6 +1707,8 @@ Update character asset.
 **Example:**
 ```json
 {
+  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
+  "channelName": "detectives",
   "senderId": 123,
   "senderName": "TestUser",
   "content": "Hello, world!",
