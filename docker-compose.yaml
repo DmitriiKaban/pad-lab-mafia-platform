@@ -49,9 +49,22 @@ services:
       TOWN_SERVICE_POSTGRES_DB: ${TOWN_SERVICE_POSTGRES_DB}
       SERVER_PORT: 8080
     ports:
-      - "8082:8080"  # Changed external port to 8082
+      - "8082:8080"
     depends_on:
       - db_town_service
+    networks:
+      - app_network
+
+  db_character_service:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${CHARACTER_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${CHARACTER_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${CHARACTER_SERVICE_POSTGRES_DB}
+    ports:
+      - "${CHARACTER_SERVICE_POSTGRES_DB_PORT}:5432"
+    volumes:
+      - character_postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
 
@@ -65,7 +78,7 @@ services:
       CHARACTER_SERVICE_POSTGRES_DB: ${CHARACTER_SERVICE_POSTGRES_DB}
       SERVER_PORT: 8081
     ports:
-      - "8083:8081"  # Changed external port to 8083
+      - "8083:8081"
     depends_on:
       - db_character_service
     networks:
@@ -84,6 +97,53 @@ services:
       - "8000:80"
     depends_on:
       - db_user_management_service
+      
+  db_rumours_service:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${RUMOURS_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${RUMOURS_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${RUMOURS_POSTGRES_DB}
+    ports:
+      - "${RUMOURS_POSTGRES_DB_PORT}:5432"
+    volumes:
+      - rumours_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  rumours_service:
+    image: m1rrerror/mafia-rumours-service:v1.0.0
+    environment:
+      DB_CONNECTION_STRING: "Host=db_rumours_service;Port=5432;Database=${RUMOURS_POSTGRES_DB};Username=${RUMOURS_POSTGRES_USER};Password=${RUMOURS_POSTGRES_PASSWORD}"
+      CURRENCY_SERVICE_URL: ${CURRENCY_SERVICE_URL}
+    ports:
+      - "8084:8080"
+    depends_on:
+      - db_rumours_service
+    networks:
+      - app_network
+
+  db_communication_service:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${COMM_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${COMM_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${COMM_POSTGRES_DB}
+    ports:
+      - "${COMM_POSTGRES_DB_PORT}:5432"
+    volumes:
+      - communication_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  communication_service:
+    image: m1rrerror/mafia-communication-service:v1.0.0
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db_communication_service;Port=5432;Database=${COMM_POSTGRES_DB};Username=${COMM_POSTGRES_USER};Password=${COMM_POSTGRES_PASSWORD}"
+    ports:
+      - "8085:8080"
+    depends_on:
+      - db_communication_service
     networks:
       - app_network
 
@@ -91,6 +151,8 @@ volumes:
   town_postgres_data:
   character_postgres_data:
   user_management_postgres_data:
+  rumours_postgres_data:
+  communication_postgres_data:
 
 networks:
   app_network:
