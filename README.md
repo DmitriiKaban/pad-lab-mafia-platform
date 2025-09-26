@@ -53,7 +53,7 @@ The game continues with a cycle of day and night phases until one of two conditi
 - Rumors Service: Provides an information marketplace. Players can spend currency to buy pieces of information (rumors) about other players, sourced from their actions, appearance, or location.
 - Communication Service: Facilitates all in-game chat. It provides a global chat during the voting phase and private, secure chat channels for specific groups (e.g., Mafia members, players in the same location).
 - Task Service: Assigns daily tasks to players based on their role and career. It validates task completion and triggers currency rewards. The actions taken during tasks can become fodder for the Rumors Service.
-- Voting Service: Manages the daily voting process to exile a player. It collects votes from all players, tallies the results, and reports the outcome to the Game Service.
+-  Service: Manages the daily voting process to exile a player. It collects votes from all players, tallies the results, and reports the outcome to the Game Service.
 
 ## Architectural Diagram
 
@@ -1480,25 +1480,39 @@ Update character asset.
 
 ## 9. Task Service
 
+#### POST /tasks/assign/{gameId}/{playerId}
+Assigns daily tasks to a player based on their career and role.
 
+**Path Parameters:**
+- `gameId` (long): Game identifier
+- `playerId` (long): Player identifier
 
-#### GET /player/{playerId}
-Get tasks based on player.
-
-**Headers:**
-- `Authorization: Bearer <token>`
-
-**Success Response (200):**
+**Response (201 Created):**
 ```json
 {
   "data": {
+    "playerId": "123456789012345",
+    "gameId": "987654321098765", 
+    "playerCareer": "teacher",
+    "playerRole": "civilian",
     "tasks": [
       {
-        "id": "uuid",
+        "id": "1",
         "name": "Teach Class",
         "description": "Teach a class at the school",
         "reward": {
           "coins": 50,
+          "diamonds": 0
+        },
+        "status": "available",
+        "location": "school"
+      },
+      {
+        "id": "2",
+        "name": "Grade Papers",
+        "description": "Grade student assignments",
+        "reward": {
+          "coins": 30,
           "diamonds": 0
         },
         "status": "available",
@@ -1509,11 +1523,64 @@ Get tasks based on player.
 }
 ```
 
-#### PUT /tasks/{taskId}/status
-Update task status.
+**Error Responses:**
+* **400 Bad Request**
+  ```json
+  {
+    "error": {
+      "code": "TASKS_ALREADY_ASSIGNED",
+      "message": "Tasks have already been assigned for this day"
+    }
+  }
+  ```
 
-**Headers:**
-- `Authorization: Bearer <token>`
+#### GET /player/{playerId}/tasks
+Retrieves tasks for a specific player.
+
+**Path Parameters:**
+- `playerId` (long): Player identifier
+
+**Query Parameters:**
+- `gameId` (long): Game identifier (required)
+- `dayNumber` (integer, optional): Filter tasks by specific day (≥1)
+
+**Response (200 OK):**
+```json
+{
+  "data": {
+    "tasks": [
+      {
+        "id": "1",
+        "name": "Teach Class",
+        "description": "Teach a class at the school",
+        "reward": {
+          "coins": 50,
+          "diamonds": 0
+        },
+        "status": "available",
+        "location": "school"
+      },
+      {
+        "id": "2",
+        "name": "Grade Papers",
+        "description": "Grade student assignments",
+        "reward": {
+          "coins": 30,
+          "diamonds": 0
+        },
+        "status": "completed",
+        "location": "school"
+      }
+    ]
+  }
+}
+```
+
+#### PUT /tasks/{taskId}/status
+Updates the status of a specific task.
+
+**Path Parameters:**
+- `taskId` (integer): Task identifier (≥1)
 
 **Request Body:**
 ```json
@@ -1522,23 +1589,42 @@ Update task status.
 }
 ```
 
-**Success Response (200):**
+Valid status values: `available`, `in_progress`, `completed`, `failed`
+
+**Response (200 OK):**
 ```json
 {
   "data": {
-    "taskId": "uuid",
+    "taskId": "1",
     "status": "completed",
     "reward": {
       "coins": 50,
       "diamonds": 0
-    },
-    "completedAt": "2023-10-01T12:00:00Z"
+    }
   }
 }
 ```
 
 **Error Responses:**
-- **404 Not Found**
+* **400 Bad Request**
+  ```json
+  {
+    "error": {
+      "code": "INVALID_STATUS_TRANSITION",
+      "message": "Cannot change status from current state"
+    }
+  }
+  ```
+* **403 Forbidden**
+  ```json
+  {
+    "error": {
+      "code": "DEADLINE_EXCEEDED",
+      "message": "Task deadline has passed, cannot complete task"
+    }
+  }
+  ```
+* **404 Not Found**
   ```json
   {
     "error": {
@@ -1552,37 +1638,31 @@ Update task status.
 
 ## 10. Voting Service
 
-
-
 #### POST /vote
-Assign vote to a player.
-
-**Headers:**
-- `Authorization: Bearer <token>`
+Creates a new vote in the active voting session.
 
 **Request Body:**
 ```json
 {
-  "gameId": "uuid",
-  "voterId": 12,
-  "targetPlayerId": 13
+  "gameId": 123456789012345,
+  "voterId": 987654321098765,
+  "targetPlayerId": 456789012345678
 }
 ```
 
-**Success Response (201):**
+**Response (201 Created):**
 ```json
 {
   "data": {
-    "voteId": "uuid",
-    "voterId": 12,
-    "targetPlayerId": 13,
-    "timestamp": "2023-10-01T12:00:00Z"
+    "voteId": 1,
+    "voterId": 987654321098765,
+    "targetPlayerId": 456789012345678
   }
 }
 ```
 
 **Error Responses:**
-- **400 Bad Request**
+* **400 Bad Request**
   ```json
   {
     "error": {
@@ -1591,7 +1671,16 @@ Assign vote to a player.
     }
   }
   ```
-- **409 Conflict**
+* **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "GAME_NOT_FOUND",
+      "message": "Game does not exist"
+    }
+  }
+  ```
+* **409 Conflict**
   ```json
   {
     "error": {
@@ -1601,27 +1690,71 @@ Assign vote to a player.
   }
   ```
 
+#### PUT /vote/{voteId}
+Changes the target of an existing vote.
+
+**Path Parameters:**
+- `voteId` (integer): Vote identifier (≥1)
+
+**Request Body:**
+```json
+{
+  "targetPlayerId": 789012345678901
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "data": {
+    "voteId": 1,
+    "voterId": 987654321098765,
+    "targetPlayerId": 789012345678901
+  }
+}
+```
+
+**Error Responses:**
+* **400 Bad Request**
+  ```json
+  {
+    "error": {
+      "code": "VOTING_NOT_ACTIVE",
+      "message": "Voting phase is not currently active"
+    }
+  }
+  ```
+* **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "VOTE_NOT_FOUND",
+      "message": "Vote does not exist"
+    }
+  }
+  ```
+
 #### GET /votes/{gameId}
-Get list of votes for a game.
+Retrieves voting history and results for all sessions in a game.
 
-**Headers:**
-- `Authorization: Bearer <token>`
+**Path Parameters:**
+- `gameId` (long): Game identifier (≥1)
 
-**Success Response (200):**
+**Response (200 OK):**
 ```json
 {
   "data": {
     "votingSessions": [
       {
-        "sessionId": "uuid_of_session_1",
+        "sessionId": 1,
         "dayNumber": 1,
         "votes": [
           {
-            "targetPlayerId": 12,
+            "targetPlayerId": 456789012345678,
             "voteCount": 3
           },
           {
-            "targetPlayerId": 13,
+            "targetPlayerId": 789012345678901,
             "voteCount": 2
           }
         ],
@@ -1633,60 +1766,12 @@ Get list of votes for a game.
 ```
 
 **Error Responses:**
-- **404 Not Found**
+* **404 Not Found**
   ```json
   {
     "error": {
       "code": "GAME_NOT_FOUND",
       "message": "Game does not exist"
-    }
-  }
-  ```
-
-#### POST /votes/elimination
-Send voted-out player to Game Service.
-
-**Headers:**
-- `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "gameId": "uuid",
-  "dayNumber": 1,
-  "votedOutPlayerId": 13
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "data": {
-    "gameId": "uuid",
-    "dayNumber": 1,
-    "votedOutPlayerId": 13,
-    "notifiedAt": "2023-10-01T20:00:00Z"
-  }
-}
-```
-
-**Error Responses:**
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "GAME_NOT_FOUND",
-      "message": "Game does not exist"
-    }
-  }
-  ```
-  
-- **409 Conflict**
-  ```json
-  {
-    "error": {
-      "code": "ALREADY_NOTIFIED",
-      "message": "Elimination has already been sent for this day"
     }
   }
   ```
