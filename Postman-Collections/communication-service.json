@@ -42,6 +42,19 @@
 			"response": []
 		},
 		{
+			"name": "Delete lobby",
+			"id": "182cb69f-cd95-4d08-880e-9c3c76fadc8d",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "{{comm_service_base_url}}/api/chat/lobby/test"
+			},
+			"response": []
+		},
+		{
 			"name": "Toggle global chat",
 			"id": "4f4a92ca-5218-4dfb-9b2d-2c942befd463",
 			"protocolProfileBehavior": {
@@ -174,7 +187,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "fe36611f-4be6-489b-96c6-8595fcb263df",
+				"id": "989df5c8-101f-4abd-9368-ea9571cc82fc",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -184,7 +197,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "ab166a54-87a4-402a-a85f-50ac0dfa0fc5",
+				"id": "f5054104-3445-41e8-9ae3-85d37a97d123",
 				"type": "text/javascript",
 				"exec": [
 					""
