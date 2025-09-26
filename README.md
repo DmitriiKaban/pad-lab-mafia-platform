@@ -1383,6 +1383,36 @@ Update character asset.
 
 ---
 
+### Delete Lobby
+
+**Endpoint:** `DELETE /api/chat/lobby/{lobbyId}`
+
+**Description:** Deletes the specified lobby.
+
+**Success Response (200):**
+
+```json
+{
+  "message": "Lobby deleted successfully"
+}
+```
+
+**Error Responses:**
+
+**404 Not Found**
+
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
+
+---
+
 ### Send Global Message
 
 **Endpoint:** `POST /api/chat/global/{lobbyId}/send-message`
