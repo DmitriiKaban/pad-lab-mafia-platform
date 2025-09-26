@@ -1793,7 +1793,7 @@ Update character asset.
 ```
 ---
 
---## 9. Task Service
+## 9. Task Service
 
 #### POST /tasks/assign/{gameId}/{playerId}
 Assigns daily tasks to a player based on their career and role.
@@ -1812,7 +1812,7 @@ Assigns daily tasks to a player based on their career and role.
     "playerRole": "civilian",
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "name": "Teach Class",
         "description": "Teach a class at the school",
         "reward": {
@@ -1823,7 +1823,7 @@ Assigns daily tasks to a player based on their career and role.
         "location": "school"
       },
       {
-        "id": "2",
+        "id": 2,
         "name": "Grade Papers",
         "description": "Grade student assignments",
         "reward": {
@@ -1865,7 +1865,7 @@ Retrieves tasks for a specific player.
   "data": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "name": "Teach Class",
         "description": "Teach a class at the school",
         "reward": {
@@ -1876,7 +1876,7 @@ Retrieves tasks for a specific player.
         "location": "school"
       },
       {
-        "id": "2",
+        "id": 2,
         "name": "Grade Papers",
         "description": "Grade student assignments",
         "reward": {
@@ -1910,7 +1910,7 @@ Valid status values: `available`, `in_progress`, `completed`, `failed`
 ```json
 {
   "data": {
-    "taskId": "1",
+    "taskId": 1,
     "status": "completed",
     "reward": {
       "coins": 50,
@@ -2009,7 +2009,7 @@ Creates a new vote in the active voting session.
 Changes the target of an existing vote.
 
 **Path Parameters:**
-- `voteId` (integer): Vote identifier (≥1)
+- `voteId` (integer): Vote identifier (>=1)
 
 **Request Body:**
 ```json
@@ -2053,7 +2053,7 @@ Changes the target of an existing vote.
 Retrieves voting history and results for all sessions in a game.
 
 **Path Parameters:**
-- `gameId` (long): Game identifier (≥1)
+- `gameId` (long): Game identifier (>=1)
 
 **Response (200 OK):**
 ```json
