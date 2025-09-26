@@ -102,6 +102,8 @@ services:
     depends_on:
       db_user_management_service:
         condition: service_healthy
+    networks:
+      - app_network
       
   db_rumours_service:
     image: postgres:latest
