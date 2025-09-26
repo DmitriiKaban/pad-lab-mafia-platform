@@ -1791,23 +1791,23 @@ Update character asset.
   "timestamp": "2025-09-09T20:30:00.123Z"
 }
 ```
-
 ---
 
 ## 9. Task Service
 
 #### POST /tasks/assign/{gameId}/{playerId}
-Assign daily tasks to a player by fetching their role and career from Game Service, then assigning tasks based on their career.
+Assigns daily tasks to a player based on their career and role.
 
-**Headers:**
-* `Authorization: Bearer <token>`
+**Path Parameters:**
+- `gameId` (long): Game identifier
+- `playerId` (long): Player identifier
 
-**Success Response (201):**
+**Response (201 Created):**
 ```json
 {
   "data": {
-    "playerId": 1,
-    "gameId": 1,
+    "playerId": 123456789012345,
+    "gameId": 987654321098765, 
     "playerCareer": "teacher",
     "playerRole": "civilian",
     "tasks": [
@@ -1823,7 +1823,7 @@ Assign daily tasks to a player by fetching their role and career from Game Servi
         "location": "school"
       },
       {
-        "id": 1,
+        "id": 2,
         "name": "Grade Papers",
         "description": "Grade student assignments",
         "reward": {
@@ -1848,27 +1848,18 @@ Assign daily tasks to a player by fetching their role and career from Game Servi
     }
   }
   ```
-* **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist in the specified game"
-    }
-  }
-  ```
 
 #### GET /player/{playerId}/tasks
-Get tasks assigned to a specific player.
+Retrieves tasks for a specific player.
 
-**Headers:**
-* `Authorization: Bearer <token>`
+**Path Parameters:**
+- `playerId` (long): Player identifier
 
 **Query Parameters:**
-* `gameId` (required): Long of the game
-* `dayNumber` (optional): Specific day number to filter tasks
+- `gameId` (long): Game identifier (required)
+- `dayNumber` (integer, optional): Filter tasks by specific day (≥1)
 
-**Success Response (200):**
+**Response (200 OK):**
 ```json
 {
   "data": {
@@ -1883,28 +1874,28 @@ Get tasks assigned to a specific player.
         },
         "status": "available",
         "location": "school"
+      },
+      {
+        "id": 2,
+        "name": "Grade Papers",
+        "description": "Grade student assignments",
+        "reward": {
+          "coins": 30,
+          "diamonds": 0
+        },
+        "status": "completed",
+        "location": "school"
       }
     ]
   }
 }
 ```
 
-**Error Responses:**
-* **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "PLAYER_NOT_FOUND",
-      "message": "Player does not exist"
-    }
-  }
-  ```
-
 #### PUT /tasks/{taskId}/status
-Update task completion status.
+Updates the status of a specific task.
 
-**Headers:**
-* `Authorization: Bearer <token>`
+**Path Parameters:**
+- `taskId` (integer): Task identifier (≥1)
 
 **Request Body:**
 ```json
@@ -1913,7 +1904,9 @@ Update task completion status.
 }
 ```
 
-**Success Response (200):**
+Valid status values: `available`, `in_progress`, `completed`, `failed`
+
+**Response (200 OK):**
 ```json
 {
   "data": {
@@ -1937,15 +1930,6 @@ Update task completion status.
     }
   }
   ```
-* **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "TASK_NOT_FOUND",
-      "message": "Task does not exist"
-    }
-  }
-  ```
 * **403 Forbidden**
   ```json
   {
@@ -1955,38 +1939,45 @@ Update task completion status.
     }
   }
   ```
+* **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "TASK_NOT_FOUND",
+      "message": "Task does not exist"
+    }
+  }
+  ```
+
 ---
 
 ## 10. Voting Service
 
 #### POST /vote
-Assign vote to a player.
-
-**Headers:**
-- `Authorization: Bearer <token>`
+Creates a new vote in the active voting session.
 
 **Request Body:**
 ```json
 {
-  "gameId": 1,
-  "voterId": 1,
-  "targetPlayerId": 1
+  "gameId": 123456789012345,
+  "voterId": 987654321098765,
+  "targetPlayerId": 456789012345678
 }
 ```
 
-**Success Response (201):**
+**Response (201 Created):**
 ```json
 {
   "data": {
     "voteId": 1,
-    "voterId": 1,
-    "targetPlayerId": 1
+    "voterId": 987654321098765,
+    "targetPlayerId": 456789012345678
   }
 }
 ```
 
 **Error Responses:**
-- **400 Bad Request**
+* **400 Bad Request**
   ```json
   {
     "error": {
@@ -1995,7 +1986,16 @@ Assign vote to a player.
     }
   }
   ```
-- **409 Conflict**
+* **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "GAME_NOT_FOUND",
+      "message": "Game does not exist"
+    }
+  }
+  ```
+* **409 Conflict**
   ```json
   {
     "error": {
@@ -2006,31 +2006,31 @@ Assign vote to a player.
   ```
 
 #### PUT /vote/{voteId}
-Change an existing vote to target a different player.
+Changes the target of an existing vote.
 
-**Headers:**
-- `Authorization: Bearer <token>`
+**Path Parameters:**
+- `voteId` (integer): Vote identifier (>=1)
 
 **Request Body:**
 ```json
 {
-  "targetPlayerId": 1
+  "targetPlayerId": 789012345678901
 }
 ```
 
-**Success Response (200):**
+**Response (200 OK):**
 ```json
 {
   "data": {
     "voteId": 1,
-    "voterId": 1,
-    "targetPlayerId": 1
+    "voterId": 987654321098765,
+    "targetPlayerId": 789012345678901
   }
 }
 ```
 
 **Error Responses:**
-- **400 Bad Request**
+* **400 Bad Request**
   ```json
   {
     "error": {
@@ -2039,32 +2039,23 @@ Change an existing vote to target a different player.
     }
   }
   ```
-- **404 Not Found**
+* **404 Not Found**
   ```json
   {
     "error": {
       "code": "VOTE_NOT_FOUND",
-      "message": "Vote does not exist or does not belong to the authenticated user"
-    }
-  }
-  ```
-- **403 Forbidden**
-  ```json
-  {
-    "error": {
-      "code": "UNAUTHORIZED_VOTE_CHANGE",
-      "message": "You can only change your own votes"
+      "message": "Vote does not exist"
     }
   }
   ```
 
 #### GET /votes/{gameId}
-Get list of votes for a game.
+Retrieves voting history and results for all sessions in a game.
 
-**Headers:**
-- `Authorization: Bearer <token>`
+**Path Parameters:**
+- `gameId` (long): Game identifier (>=1)
 
-**Success Response (200):**
+**Response (200 OK):**
 ```json
 {
   "data": {
@@ -2074,11 +2065,11 @@ Get list of votes for a game.
         "dayNumber": 1,
         "votes": [
           {
-            "targetPlayerId": 1,
+            "targetPlayerId": 456789012345678,
             "voteCount": 3
           },
           {
-            "targetPlayerId": 1,
+            "targetPlayerId": 789012345678901,
             "voteCount": 2
           }
         ],
@@ -2090,7 +2081,7 @@ Get list of votes for a game.
 ```
 
 **Error Responses:**
-- **404 Not Found**
+* **404 Not Found**
   ```json
   {
     "error": {
@@ -2098,57 +2089,7 @@ Get list of votes for a game.
       "message": "Game does not exist"
     }
   }
-  ```
-
-#### POST /votes/elimination
-Send voted-out player to Game Service.
-
-**Headers:**
-- `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "gameId": 1,
-  "dayNumber": 1,
-  "votedOutPlayerId": 13
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "data": {
-    "gameId": 1,
-    "dayNumber": 1,
-    "votedOutPlayerId": 13,
-    "notifiedAt": "2023-10-01T20:00:00Z"
-  }
-}
-```
-
-**Error Responses:**
-- **404 Not Found**
-  ```json
-  {
-    "error": {
-      "code": "GAME_NOT_FOUND",
-      "message": "Game does not exist"
-    }
-  }
-  ```
-  
-- **409 Conflict**
-  ```json
-  {
-    "error": {
-      "code": "ALREADY_NOTIFIED",
-      "message": "Elimination has already been sent for this day"
-    }
-  }
-  ```
-
----
+  ```-
 
 ## Common Error Codes
 
