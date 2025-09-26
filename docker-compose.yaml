@@ -88,6 +88,7 @@ services:
     networks:
       - app_network
 
+
   user_management_service:
     image: alexandrina581/user-management-service:latest
     environment:
@@ -124,7 +125,7 @@ services:
       retries: 5
 
   rumours_service:
-    image: m1rrerror/mafia-rumours-service:v1.0.0
+    image: m1rrerror/mafia-rumours-service:v1.2.0
     environment:
       DB_CONNECTION_STRING: "Host=db_rumours_service;Port=5432;Database=${RUMOURS_POSTGRES_DB};Username=${RUMOURS_POSTGRES_USER};Password=${RUMOURS_POSTGRES_PASSWORD}"
       CURRENCY_SERVICE_URL: ${CURRENCY_SERVICE_URL}
@@ -155,7 +156,7 @@ services:
       retries: 5
 
   communication_service:
-    image: m1rrerror/mafia-communication-service:v1.0.0
+    image: m1rrerror/mafia-communication-service:v1.1.0
     environment:
       ConnectionStrings__DefaultConnection: "Host=db_communication_service;Port=5432;Database=${COMM_POSTGRES_DB};Username=${COMM_POSTGRES_USER};Password=${COMM_POSTGRES_PASSWORD}"
     ports:
@@ -176,6 +177,8 @@ services:
       - "${VOTING_SERVICE_POSTGRES_PORT}:5432"
     volumes:
       - voting_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${VOTING_SERVICE_POSTGRES_USER} -d ${VOTING_SERVICE_POSTGRES_DB}"]
       interval: 10s
@@ -195,6 +198,9 @@ services:
     depends_on:
       db_voting_service:
         condition: service_healthy
+    networks:
+      - app_network
+
 
   task-service-db:
     image: postgres:16
@@ -211,6 +217,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app_network
 
   task-service:
     image: iraned/task-service:1.2
@@ -222,6 +230,8 @@ services:
     depends_on:
       task-service-db:
         condition: service_healthy
+    networks:
+      - app_network
     ports:
       - "8001:8000"
 
