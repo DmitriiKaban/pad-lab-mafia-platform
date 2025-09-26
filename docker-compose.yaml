@@ -12,19 +12,11 @@ services:
       - town_postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
-
-  db_user_management_service:
-    image: postgres:14
-    environment:
-      POSTGRES_USER: ${USER_MANAGEMENT_SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${USER_MANAGEMENT_SERVICE_POSTGRES_DB}
-    ports:
-      - "5433:5432"
-    volumes:
-      - user_management_postgres_data:/var/lib/postgresql/data
-    networks:
-      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TOWN_SERVICE_POSTGRES_USER} -d ${TOWN_SERVICE_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   town_service:
     image: dimaubuntu/town-service:0.3
@@ -38,7 +30,8 @@ services:
     ports:
       - "8082:8080"
     depends_on:
-      - db_town_service
+      db_town_service:
+        condition: service_healthy
     networks:
       - app_network
 
@@ -54,6 +47,11 @@ services:
       - character_postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CHARACTER_SERVICE_POSTGRES_USER} -d ${CHARACTER_SERVICE_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   character_service:
     image: dimaubuntu/character-service:0.3
@@ -67,24 +65,11 @@ services:
     ports:
       - "8083:8081"
     depends_on:
-      - db_character_service
+      db_character_service:
+        condition: service_healthy
     networks:
       - app_network
 
-  user_management_service:
-    image: alexandrina581/user-management-service:latest
-    environment:
-      USER_MANAGEMENT_SERVICE_POSTGRES_HOST: db
-      USER_MANAGEMENT_SERVICE_POSTGRES_DB_PORT: 5432
-      USER_MANAGEMENT_SERVICE_POSTGRES_USER: ${USER_MANAGEMENT_SERVICE_POSTGRES_USER}
-      USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD: ${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}
-      USER_MANAGEMENT_SERVICE_POSTGRES_DB: ${USER_MANAGEMENT_SERVICE_POSTGRES_DB}
-    command: uvicorn app.main:app --host 0.0.0.0 --port 80
-    ports:
-      - "8060:80"
-    depends_on:
-      - db_user_management_service
-      
   db_rumours_service:
     image: postgres:latest
     environment:
@@ -97,6 +82,11 @@ services:
       - rumours_postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${RUMOURS_POSTGRES_USER} -d ${RUMOURS_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   rumours_service:
     image: m1rrerror/mafia-rumours-service:v1.0.0
@@ -106,7 +96,8 @@ services:
     ports:
       - "8084:8080"
     depends_on:
-      - db_rumours_service
+      db_rumours_service:
+        condition: service_healthy
     networks:
       - app_network
 
@@ -122,6 +113,11 @@ services:
       - communication_postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${COMM_POSTGRES_USER} -d ${COMM_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   communication_service:
     image: m1rrerror/mafia-communication-service:v1.0.0
@@ -130,63 +126,14 @@ services:
     ports:
       - "8085:8080"
     depends_on:
-      - db_communication_service
+      db_communication_service:
+        condition: service_healthy
     networks:
       - app_network
 
-  db_voting_service:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: ${VOTING_SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${VOTING_SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${VOTING_SERVICE_POSTGRES_DB}
-    ports:
-      - "${VOTING_SERVICE_POSTGRES_PORT}:5432"
-    volumes:
-      - voting_postgres_data:/var/lib/postgresql/data
-
-  voting_service:
-    image: iraned/voting-service:1.2
-    environment:
-      VOTING_SERVICE_POSTGRES_USER: ${VOTING_SERVICE_POSTGRES_USER}
-      VOTING_SERVICE_POSTGRES_PASSWORD: ${VOTING_SERVICE_POSTGRES_PASSWORD}
-      VOTING_SERVICE_POSTGRES_DB: ${VOTING_SERVICE_POSTGRES_DB}
-      VOTING_SERVICE_POSTGRES_HOST: db_voting_service
-      VOTING_SERVICE_POSTGRES_PORT: "5432"
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db_voting_service
-
-  task-service-db:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: ${TASK_SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${TASK_SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${TASK_SERVICE_POSTGRES_DB}
-    ports:
-      - "5469:5432"             # host:container
-    volumes:
-      - task_pgdata:/var/lib/postgresql/data
-
-  task-service:
-    image: iraned/task-service:1.2
-    env_file:
-      - .env                    # contains POSTGRES_USER/POSTGRES_PASSWORD/POSTGRES_DB
-    environment:
-      POSTGRES_HOST: "task-service-db"
-      POSTGRES_PORT: "5432"
-    depends_on:
-      - task-service-db
-    ports:
-      - "8001:8000"
-
 volumes:
-  voting_postgres_data:
-  task_pgdata:
   town_postgres_data:
   character_postgres_data:
-  user_management_postgres_data:
   rumours_postgres_data:
   communication_postgres_data:
 
