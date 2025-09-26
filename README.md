@@ -1197,6 +1197,8 @@ Update character asset.
 }
 ```
 
+**Available rumour types:** activity, appearance.
+
 **Success Response (200):**
 ```json
 {
@@ -1220,8 +1222,8 @@ Update character asset.
   ```json
   {
     "error": {
-      "code": "NO_RUMOURS_AVAILABLE",
-      "message": "No rumours available for this target"
+      "code": "BAD_RUMOURS_TYPE",
+      "message": "Rumours type not found"
     }
   }
   ```
