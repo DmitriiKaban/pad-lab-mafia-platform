@@ -1,0 +1,45 @@
+{
+	"info": {
+		"_postman_id": "ac22772c-4565-4e06-b39b-56b80f2775ca",
+		"name": "API for Task",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "New Request",
+			"id": "01fdc0d5-0262-4873-a840-9e573b5fdf28",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Get tasks assigned to a specific player",
+			"id": "0b16d89b-126c-454d-9d5e-d46142ef0175",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Assign daily tasks",
+			"id": "cae8834b-346b-43f3-af66-134127d93128",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}

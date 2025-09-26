@@ -1,0 +1,45 @@
+{
+	"info": {
+		"_postman_id": "239d80b9-d617-4a09-8076-4fdb3a97ef11",
+		"name": "API for Voting",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create & Update vote",
+			"id": "7ad0b96d-6984-4235-a0fa-bbadad082efb",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Update vote",
+			"id": "cba8d760-cf76-4d52-b8ee-6533afa60324",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Returns a list of all votes",
+			"id": "5b8fb09f-0408-4c28-afec-f691ca8599bd",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
