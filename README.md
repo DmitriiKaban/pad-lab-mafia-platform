@@ -1792,7 +1792,8 @@ Update character asset.
 }
 ```
 ---
-## 9. Task Service
+
+--## 9. Task Service
 
 #### POST /tasks/assign/{gameId}/{playerId}
 Assigns daily tasks to a player based on their career and role.
@@ -1805,8 +1806,8 @@ Assigns daily tasks to a player based on their career and role.
 ```json
 {
   "data": {
-    "playerId": "123456789012345",
-    "gameId": "987654321098765", 
+    "playerId": 123456789012345,
+    "gameId": 987654321098765, 
     "playerCareer": "teacher",
     "playerRole": "civilian",
     "tasks": [
@@ -2088,8 +2089,7 @@ Retrieves voting history and results for all sessions in a game.
       "message": "Game does not exist"
     }
   }
-  ```
----
+  ```-
 
 ## Common Error Codes
 
