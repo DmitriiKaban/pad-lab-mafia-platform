@@ -323,6 +323,8 @@ services:
       - "5434:5432"
     volumes:
       - game_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
 
   app:
     image: alexandrina581/game-service:latest
@@ -335,6 +337,8 @@ services:
       - .env
     depends_on:
       - game-service-db
+    networks:
+      - app_network
 
 volumes:
   voting_postgres_data:
