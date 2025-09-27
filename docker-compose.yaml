@@ -349,6 +349,8 @@ volumes:
   rumours_postgres_data:
   communication_postgres_data:
   game_postgres_data:
+  roleplay_postgres_data:
+  shop_postgres_data:
 
 networks:
   app_network:
