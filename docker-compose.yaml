@@ -37,7 +37,7 @@ services:
       retries: 5
 
   town_service:
-    image: dimaubuntu/town-service:0.3
+    image: dimaubuntu/town-service:0.5
     environment:
       TOWN_SERVICE_POSTGRES_HOST: db_town_service
       TOWN_SERVICE_POSTGRES_DB_PORT: 5432
