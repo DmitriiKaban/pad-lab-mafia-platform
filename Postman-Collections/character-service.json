@@ -131,7 +131,8 @@
 			},
 			"request": {
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": "{{domain}}/assets/slots"
 			},
 			"response": []
 		}
