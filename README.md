@@ -991,6 +991,27 @@ Get all movements of a specific player.
 
 ### Dockerhub image: 'dimaubuntu/character-service'
 
+#### GET /assets/slots
+Get list of all available asset slots.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Success Response (200):**
+```json
+{
+  "data": {
+    "slots": [
+      "HAIR",
+      "SHIRT",
+      "PANTS",
+      "SHOES",
+      "ACCESSORY"
+    ]
+  }
+}
+```
+
 #### GET /{playerId}/items
 Get list of items for a player.
 
