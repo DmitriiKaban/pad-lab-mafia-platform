@@ -547,7 +547,7 @@ Get status of each player (alive/not alive).
         "status": "alive"
       },
       {
-        "playerId": "2",
+        "playerId": 2,
         "username": "string",
         "status": "eliminated"
       }
