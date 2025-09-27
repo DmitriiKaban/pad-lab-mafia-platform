@@ -72,7 +72,7 @@ services:
       retries: 5
 
   character_service:
-    image: dimaubuntu/character-service:0.3
+    image: dimaubuntu/character-service:0.6
     environment:
       CHARACTER_SERVICE_POSTGRES_HOST: db_character_service
       CHARACTER_SERVICE_POSTGRES_DB_PORT: 5432
