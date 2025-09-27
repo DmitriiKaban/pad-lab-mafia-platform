@@ -55,7 +55,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"playerId\": 1,\r\n  \"locationId\": 2,\r\n  \"lobbyId\": 11\r\n}",
+					"raw": "{\r\n  \"playerId\": 103,\r\n  \"locationId\": 2,\r\n  \"lobbyId\": 11\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
