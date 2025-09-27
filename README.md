@@ -339,7 +339,28 @@ Adds, subtracts or sets a user's currency balance.
 
 ## 2. Game Service
 
+___
 
+### Dockerhub image: 'alexandrina581/game-service'
+
+___
+
+### Requires Environment Configuration
+Create your `.env` file based on the template:
+```bash
+cp .env.template .env
+```
+
+Then edit the `.env` file with your configuration:
+```env
+GAME_SERVICE_POSTGRES_USER=postgres
+GAME_SERVICE_POSTGRES_PASSWORD=your_password_here
+GAME_SERVICE_POSTGRES_DB=game_service
+GAME_SERVICE_POSTGRES_HOST=game-service-db
+GAME_SERVICE_POSTGRES_PORT=5432
+```
+
+---
 
 #### POST /lobby
 Creates a new game lobby.
@@ -398,8 +419,8 @@ Join an existing game lobby.
 {
   "data": {
     "lobbyId": 1,
-    "currentPlayers": 1,
-    "maxPlayers": 1
+    "currentPlayers": 2,
+    "maxPlayers": 5
   }
 }
 ```
@@ -497,6 +518,17 @@ Get current game state.
     }
   }
   ```
+  
+**Error Responses:**
+- **403 Forbidden**
+  ```json
+  {
+    "error": {
+    "code": "ACCESS_DENIED",
+    "message": "You are not a player in this game"
+    }
+  }
+  ```
 
 #### GET /game/{gameId}/players/status
 Get status of each player (alive/not alive).
@@ -515,7 +547,7 @@ Get status of each player (alive/not alive).
         "status": "alive"
       },
       {
-        "playerId": 1,
+        "playerId": "2",
         "username": "string",
         "status": "eliminated"
       }
@@ -524,8 +556,8 @@ Get status of each player (alive/not alive).
 }
 ```
 
-#### POST /game/{gameId}/career-assignment
-Assign careers to players.
+#### PUT /game/{gameId}/players/{playerId}/status
+Update player status (used by Roleplay Service when players are killed/affected).
 
 **Headers:**
 - `Authorization: Bearer <token>`
@@ -533,7 +565,9 @@ Assign careers to players.
 **Request Body:**
 ```json
 {
-  "id": 1
+  "status": "eliminated|alive|protected",
+  "cause": "killed_by_mafia|voted_out|protected_by_doctor",
+  "dayNumber": 2
 }
 ```
 
@@ -541,12 +575,53 @@ Assign careers to players.
 ```json
 {
   "data": {
-    "playerId": 1,
-    "career": "string",
-    "tasks": ["grade_papers", "teach_class"]
+    "id": 1,
+    "previousStatus": "alive",
+    "newStatus": "eliminated",
+    "cause": "killed_by_mafia",
+    "dayNumber": 2
   }
 }
 ```
+
+**Error Responses:**
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "GAME_NOT_FOUND",
+      "message": "Game does not exist"
+    }
+  }
+  ```
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "PLAYER_NOT_FOUND",
+      "message": "Player does not exist in this game"
+    }
+  }
+  ```
+- **400 Bad Request**
+  ```json
+  {
+    "error": {
+      "code": "INVALID_STATUS_TRANSITION",
+      "message": "Cannot change status from eliminated to alive"
+    }
+  }
+  ```
+- **409 Conflict**
+  ```json
+  {
+    "error": {
+      "code": "PLAYER_ALREADY_ELIMINATED",
+      "message": "Player is already eliminated"
+    }
+  }
+  ```
+
 
 #### GET /game/{gameId}/events
 Get game events.
@@ -562,8 +637,7 @@ Get game events.
       {
         "id": 1,
         "type": "elimination",
-        "message": "Player X was eliminated",
-        "timestamp": "2023-10-01T12:00:00Z"
+        "message": "Player X was eliminated"
       }
     ]
   }
@@ -571,7 +645,7 @@ Get game events.
 ```
 
 #### GET /game/{gameId}/players-roles
-Get players and their roles.
+Get players and their roles and careers.
 
 **Headers:**
 - `Authorization: Bearer <token>`
@@ -583,8 +657,9 @@ Get players and their roles.
     "players": [
       {
         "playerId": 1,
-        "username": "string",
-        "role": "mafia|doctor|investigator|villager"
+        "username": "Alice",
+        "role": "mafia",
+        "career": "banker"
       }
     ]
   }
@@ -600,7 +675,7 @@ Submit voting results.
 **Request Body:**
 ```json
 {
-  "targetPlayerId": 1
+  "targetPlayerId": 5
 }
 ```
 
@@ -609,7 +684,7 @@ Submit voting results.
 {
   "data": {
     "voteSubmitted": true,
-    "targetPlayerId": 1
+    "targetPlayerId": 5
   }
 }
 ```
@@ -643,7 +718,313 @@ Submit voting results.
   }
   ```
 
+#### POST /game/{gameId}/voting/elimination
+Receive voted-out player to Game Service.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "gameId": 1,
+  "dayNumber": 2,
+  "votedOutPlayerId": 13
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "data": {
+    "gameId": 1,
+    "dayNumber": 2,
+    "votedOutPlayerId": 13
+  }
+}
+```
+
+**Error Responses:**
+- **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "GAME_NOT_FOUND",
+      "message": "Game does not exist"
+    }
+  }
+  ```
+  
+- **409 Conflict**
+  ```json
+  {
+    "error": {
+      "code": "ALREADY_NOTIFIED",
+      "message": "Elimination has already been sent for this day"
+    }
+  }
+  ```
+
 ---
+
+
+### WebSocket Events
+
+The Game Service broadcasts real-time events to all connected players using WebSocket connections.
+
+#### WS /lobby/{lobbyId}/events
+Real-time lobby events before game starts.
+
+
+**Authentication:** JWT token required via query parameter
+
+**Events Broadcasted:**
+
+**Player Joined Lobby:**
+```json
+{
+  "type": "player_joined_lobby",
+  "data": {
+    "lobbyId": 1,
+    "id": 1,
+    "username": "string",
+    "currentPlayers": 4,
+    "maxPlayers": 10
+  }
+}
+```
+
+**Player Left Lobby:**
+```json
+{
+  "type": "player_left_lobby",
+  "data": {
+    "lobbyId": 1,
+    "id": 1,
+    "username": "string",
+    "currentPlayers": 3
+  }
+}
+```
+
+**Game Starting:**
+```json
+{
+  "type": "game_starting",
+  "data": {
+    "lobbyId": 1,
+    "gameId": 1,
+    "countdown": 5,
+    "message": "Game starting in 5 seconds..."
+  }
+}
+```
+
+**Error Responses:**
+- **4001 - Invalid Token**
+  ```json
+  {
+    "error": {
+      "code": "INVALID_TOKEN",
+      "message": "JWT token is invalid or expired"
+    }
+  }
+  ```
+- **4003 - Access Denied**
+  ```json
+  {
+    "error": {
+      "code": "ACCESS_DENIED",
+      "message": "Player is not part of this lobby"
+    }
+  }
+  ```
+- **4004 - Lobby Not Found**
+  ```json
+  {
+    "error": {
+      "code": "LOBBY_NOT_FOUND",
+      "message": "Lobby does not exist"
+    }
+  }
+  ```
+- **4009 - Connection Limit Exceeded**
+  ```json
+  {
+    "error": {
+      "code": "CONNECTION_LIMIT_EXCEEDED",
+      "message": "Too many connections from this player"
+    }
+  }
+  ```
+
+
+#### WS /game/{gameId}/events
+Real-time game events during active gameplay.
+
+
+**Authentication:** JWT token required via query parameter
+
+**Events Broadcasted:**
+
+**Phase Change:**
+```json
+{
+  "type": "phase_change",
+  "data": {
+    "gameId": 1,
+    "newPhase": "night|day|voting",
+    "dayNumber": 2,
+    "duration": 300,
+    "message": "Night phase has begun."
+  }
+}
+```
+
+
+**New Day Started:**
+```json
+{
+  "type": "new_day",
+  "data": {
+    "gameId": 1,
+    "dayNumber": 2,
+    "phase": "day",
+    "message": "Day 2 has begun."
+  }
+}
+```
+
+**Player Elimination:**
+```json
+{
+  "type": "player_elimination",
+  "data": {
+    "gameId": 1,
+    "id": 2,
+    "cause": "voted_out|killed_by_mafia",
+    "dayNumber": 2,
+    "remainingPlayers": 7
+  }
+}
+```
+
+**Game Announcement:**
+```json
+{
+  "type": "game_announcement",
+  "data": {
+    "gameId": 1,
+    "message": "A player was attacked last night but survived!",
+    "category": "night_result|system|voting"
+  }
+}
+```
+
+**Role and Career Assignment:**
+```json
+{
+  "type": "role_assignment",
+  "data": {
+    "gameId": 1,
+    "id": 2,
+    "role": "mafia|doctor|investigator|villager",
+    "career": "teacher|hunter|banker|other"
+  }
+}
+```
+
+**Voting Phase Started:**
+```json
+{
+  "type": "voting_started",
+  "data": {
+    "gameId": 1,
+    "dayNumber": 2
+  }
+}
+```
+
+**Game Ended:**
+```json
+{
+  "type": "game_ended",
+  "data": {
+    "gameId": 1,
+    "winner": "mafia|villagers",
+    "winCondition": "mafia_majority|all_mafia_eliminated",
+    "survivingPlayers": [
+      {
+        "id": 1,
+        "username": "string",
+        "role": "mafia"
+      }
+    ],
+    "totalDays": 3
+  }
+}
+```
+
+**Connection Established:**
+```json
+{
+  "type": "connection_established",
+  "data": {
+    "gameId": 1,
+    "id": 2,
+    "message": "Successfully connected to game events"
+  }
+}
+```
+
+**Error Responses:**
+- **4001 - Invalid Token**
+  ```json
+  {
+    "error": {
+      "code": "INVALID_TOKEN",
+      "message": "JWT token is invalid or expired"
+    }
+  }
+  ```
+- **4003 - Access Denied**
+  ```json
+  {
+    "error": {
+      "code": "ACCESS_DENIED",
+      "message": "Player is not part of this game"
+    }
+  }
+  ```
+- **4004 - Game Not Found**
+  ```json
+  {
+    "error": {
+      "code": "GAME_NOT_FOUND",
+      "message": "Game does not exist"
+    }
+  }
+  ```
+- **4010 - Game Not Started**
+  ```json
+  {
+    "error": {
+      "code": "GAME_NOT_STARTED",
+      "message": "Cannot connect to events before game has started"
+    }
+  }
+  ```
+- **4011 - Player Eliminated**
+  ```json
+  {
+    "error": {
+      "code": "PLAYER_ELIMINATED",
+      "message": "Eliminated players cannot receive game events"
+    }
+  }
+  ```
+
+___
 
 ## 3. Shop Service
 
