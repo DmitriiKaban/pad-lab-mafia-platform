@@ -1,0 +1,146 @@
+{
+	"info": {
+		"_postman_id": "fdf4b490-61cf-4972-939c-e5524f5517e7",
+		"name": "Roleplay Service API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30739569"
+	},
+	"item": [
+		{
+			"name": "Phase Update - Start Night",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"gameId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"newPhase\": \"night\",\n  \"dayNumber\": 1\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/phase-update",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"phase-update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Night Event - Mafia Eliminate",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"gameId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"playerId\": 4,\n  \"action\": \"eliminate\",\n  \"targetPlayerId\": 3\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/night-events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"night-events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Night Event - Doctor Save",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "PlayerId",
+						"value": "2"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"gameId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"playerId\": 2,\n  \"action\": \"save\",\n  \"targetPlayerId\": 3\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/night-events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"night-events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Phase Update - Start Day",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"gameId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"newPhase\": \"day\",\n  \"dayNumber\": 2\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/phase-update",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"phase-update"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		}
+	]
+}
