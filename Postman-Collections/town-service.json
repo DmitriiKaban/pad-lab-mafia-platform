@@ -14,7 +14,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "{{domain}}/locations/{locationId}"
+				"url": "{{domain}}/locations/103"
 			},
 			"response": []
 		},
@@ -27,7 +27,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "{{domain}}/movements"
+				"url": "{{domain}}/movements/103"
 			},
 			"response": []
 		},
@@ -55,27 +55,14 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"playerId\": \"long\",\r\n  \"locationId\": \"uuid\"\r\n}",
+					"raw": "{\r\n  \"playerId\": 1,\r\n  \"locationId\": 2,\r\n  \"lobbyId\": 11\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
 						}
 					}
 				},
-				"url": "{{domain}}/move"
-			},
-			"response": []
-		},
-		{
-			"name": "Get Locations Copy",
-			"id": "f5d1d586-90cb-4751-97fb-7ef41c674894",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": "{{domain}}/locations"
+				"url": "{{domain}}/movements/move"
 			},
 			"response": []
 		},
@@ -88,7 +75,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "{{domain}}/movements/{playerId}"
+				"url": "{{domain}}/movements/2"
 			},
 			"response": []
 		}
