@@ -125,7 +125,7 @@ services:
       retries: 5
 
   rumours_service:
-    image: m1rrerror/mafia-rumours-service:v1.2.0
+    image: m1rrerror/mafia-rumours-service:v1.3.0
     environment:
       DB_CONNECTION_STRING: "Host=db_rumours_service;Port=5432;Database=${RUMOURS_POSTGRES_DB};Username=${RUMOURS_POSTGRES_USER};Password=${RUMOURS_POSTGRES_PASSWORD}"
       CURRENCY_SERVICE_URL: ${CURRENCY_SERVICE_URL}
