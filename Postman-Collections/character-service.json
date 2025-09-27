@@ -14,7 +14,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "{{domain}}/{playerId}/items"
+				"url": "{{domain}}/100/items"
 			},
 			"response": []
 		},
@@ -29,19 +29,19 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"itemId\": \"7fdf0939-3553-4b7b-b002-5c8a86c71dc3\",\r\n  \"quantity\": 1\r\n}",
+					"raw": "{\r\n  \"itemId\": 1,\r\n  \"quantity\": 1\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
 						}
 					}
 				},
-				"url": "{{domain}}/{playerId}/items"
+				"url": "{{domain}}/100/items"
 			},
 			"response": []
 		},
 		{
-			"name": "Delete item",
+			"name": "Delete items",
 			"id": "844047fa-4fd0-46de-bbee-5b92f0f4ce5c",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
@@ -49,7 +49,7 @@
 			"request": {
 				"method": "DELETE",
 				"header": [],
-				"url": "{{domain}}/{playerId}/items/{itemId}"
+				"url": "{{domain}}/100/items/1"
 			},
 			"response": []
 		},
@@ -62,7 +62,7 @@
 			"request": {
 				"method": "POST",
 				"header": [],
-				"url": "{{domain}}/{playerId}/items/{itemId}/use"
+				"url": "{{domain}}/100/items/1/use"
 			},
 			"response": []
 		},
@@ -77,14 +77,14 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"slot\": \"hair\",\r\n  \"assetId\": \"uuid\"\r\n}",
+					"raw": "{\r\n  \"slot\": \"hair\",\r\n  \"assetId\": 2\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
 						}
 					}
 				},
-				"url": "{{domain}}/{playerId}/assets"
+				"url": "{{domain}}/100/assets"
 			},
 			"response": []
 		},
@@ -97,7 +97,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "{{domain}}/{playerId}/appearance"
+				"url": "{{domain}}/100/appearance"
 			},
 			"response": []
 		},
@@ -110,7 +110,16 @@
 			"request": {
 				"method": "PUT",
 				"header": [],
-				"url": "{{domain}}/{playerId}/assets"
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"slot\": \"hair\",\r\n    \"assetId\": 1016\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{domain}}/100/assets"
 			},
 			"response": []
 		}
