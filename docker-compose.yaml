@@ -234,7 +234,83 @@ services:
       - app_network
     ports:
       - "8001:8000"
+  # Roleplay Service Database
+  db_roleplay_service:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${ROLEPLAY_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${ROLEPLAY_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${ROLEPLAY_SERVICE_POSTGRES_DB}
+    ports:
+      - "${ROLEPLAY_SERVICE_POSTGRES_PORT}:5432"
+    volumes:
+      - roleplay_postgres_data:/var/lib/postgresql/data
+      - ./roleplay-init-db.sh:/docker-entrypoint-initdb.d/roleplay-init-db.sh:ro
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ROLEPLAY_SERVICE_POSTGRES_USER} -d ${ROLEPLAY_SERVICE_POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Roleplay Service
+  roleplay_service:
+    image: ${ROLEPLAY_SERVICE_IMAGE}:${ROLEPLAY_SERVICE_TAG}
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=db_roleplay_service;Port=5432;Database=${ROLEPLAY_SERVICE_POSTGRES_DB};Username=${ROLEPLAY_SERVICE_POSTGRES_USER};Password=${ROLEPLAY_SERVICE_POSTGRES_PASSWORD};Include Error Detail=true
+    ports:
+      - "${ROLEPLAY_SERVICE_PORT}:80"
+    depends_on:
+      db_roleplay_service:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  db_shop_service:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${SHOP_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${SHOP_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${SHOP_SERVICE_POSTGRES_DB}
+    ports:
+      - "${SHOP_SERVICE_POSTGRES_PORT}:5432"
+    volumes:
+      - shop_postgres_data:/var/lib/postgresql/data
+      - ./shop-init-db.sh:/docker-entrypoint-initdb.d/shop-init-db.sh:ro
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SHOP_SERVICE_POSTGRES_USER} -d ${SHOP_SERVICE_POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  shop_service:
+    image: ${SHOP_SERVICE_IMAGE}:${SHOP_SERVICE_TAG}
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=db_shop_service;Port=5432;Database=${SHOP_SERVICE_POSTGRES_DB};Username=${SHOP_SERVICE_POSTGRES_USER};Password=${SHOP_SERVICE_POSTGRES_PASSWORD};Include Error Detail=true
+      - UserServiceUrl=http://user_management_service:80
+      - CharacterServiceUrl=http://character_service:8081
+      - GameServiceUrl=http://town_service:8080
+    ports:
+      - "${SHOP_SERVICE_PORT}:80"
+    depends_on:
+      db_shop_service:
+        condition: service_healthy
+      user_management_service:
+        condition: service_started
+      character_service:
+        condition: service_started
+      town_service:
+        condition: service_started
+    networks:
+      - app_network
+      
 volumes:
   voting_postgres_data:
   task_pgdata:
