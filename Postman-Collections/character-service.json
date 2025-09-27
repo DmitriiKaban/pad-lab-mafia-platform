@@ -84,7 +84,7 @@
 						}
 					}
 				},
-				"url": "{{domain}}/100/assets"
+				"url": "{{host}}/100/assets"
 			},
 			"response": []
 		},
@@ -97,7 +97,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "{{domain}}/100/appearance"
+				"url": "{{host}}/100/appearance"
 			},
 			"response": []
 		},
@@ -119,9 +119,42 @@
 						}
 					}
 				},
-				"url": "{{domain}}/100/assets"
+				"url": "{{host}}/100/assets"
 			},
 			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "97e7e442-0322-459d-9a3c-c83121d9d995",
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "24a63c22-64e1-4bee-b1bb-bff97d0e483b",
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "",
+			"type": "default"
 		}
 	]
 }
