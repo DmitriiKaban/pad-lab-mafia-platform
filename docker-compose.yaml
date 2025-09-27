@@ -310,7 +310,32 @@ services:
         condition: service_started
     networks:
       - app_network
-      
+
+  game-service-db:
+    image: postgres:14
+    container_name: game-service-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${GAME_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${GAME_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${GAME_SERVICE_POSTGRES_DB}
+    ports:
+      - "5434:5432"
+    volumes:
+      - game_postgres_data:/var/lib/postgresql/data
+
+  app:
+    image: alexandrina581/game-service:latest
+    container_name: game-service
+    working_dir: /game-service
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 80
+    ports:
+      - "8003:80"
+    env_file:
+      - .env
+    depends_on:
+      - game-service-db
+
 volumes:
   voting_postgres_data:
   task_pgdata:
@@ -319,6 +344,7 @@ volumes:
   user_management_postgres_data:
   rumours_postgres_data:
   communication_postgres_data:
+  game_postgres_data:
 
 networks:
   app_network:
