@@ -1761,7 +1761,6 @@ Update character asset.
 **Description:** Buys a rumour in the specified lobby.
 
 **Request Body:**
-
 ```json
 {
   "rumourType": "role",
@@ -1773,36 +1772,42 @@ Update character asset.
 **Available rumour types:** activity, appearance.
 
 **Success Response (200):**
-
 ```json
 {
-  "rumour": "Player X was seen near the victim's house last night"
+  "data": {
+    "id": 1,
+    "lobbyId": "test",
+    "type": "role",
+    "ownerId": 0,
+    "targetId": 1,
+    "text": "Player X was seen near the victim's house last night",
+    "createdAt": "2025-10-01T12:00:00Z"
+  }
 }
 ```
 
 **Error Responses:**
 
 **400 Bad Request**
-
   ```json
   {
-  "error": {
-    "code": "INSUFFICIENT_FUNDS",
-    "message": "Not enough currency to purchase rumour"
+    "error": {
+      "code": "INSUFFICIENT_FUNDS",
+      "message": "Not enough currency to purchase rumour"
+    }
   }
-}
   ```
 
 **404 Not Found**
-
   ```json
   {
-  "error": {
-    "code": "BAD_RUMOURS_TYPE",
-    "message": "Rumours type not found"
+    "error": {
+      "code": "BAD_RUMOURS_TYPE",
+      "message": "Rumours type not found"
+    }
   }
-}
   ```
+
 
 ---
 
@@ -1813,29 +1818,68 @@ Update character asset.
 **Description:** Gets all purchased rumours for the specified user in the specified lobby.
 
 **Success Response (200):**
+```json
+{
+  "data": {
+    [
+      {
+        "id": 1,
+        "lobbyId": "test",
+        "type": "role",
+        "ownerId": 0,
+        "targetId": 1,
+        "text": "Player X was seen near the victim's house last night",
+        "createdAt": "2025-10-01T12:00:00Z"
+      },
+      {
+        "id": 2,
+        "lobbyId": "test",
+        "type": "role",
+        "ownerId": 0,
+        "targetId": 2,
+        "text": "Player Y has been acting suspiciously",
+        "createdAt": "2025-10-01T12:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+
+---
+
+## General Errors
+
+**503 Service Unavailable**
 
 ```json
 {
-[
-  {
-    "id": 1,
-    "lobbyId": "test",
-    "type": "role",
-    "ownerId": 0,
-    "targetId": 1,
-    "text": "Player X was seen near the victim's house last night",
-    "createdAt": "2025-10-01T12:00:00Z"
-  },
-  {
-    "id": 2,
-    "lobbyId": "test",
-    "type": "role",
-    "ownerId": 0,
-    "targetId": 2,
-    "text": "Player Y has been acting suspiciously",
-    "createdAt": "2025-10-01T12:00:00Z"
+  "error": {
+    "code": "SERVICE_UNAVAILABLE",
+    "message": "Gateway service is unavailable: message"
   }
-]
+}
+```
+
+**503 Service Unavailable**
+
+```json
+{
+  "error": {
+    "code": "CONCURRENCY_LIMIT_REACHED",
+    "message": "The service is temporarily overloaded. Please try again later."
+  }
+}
+```
+
+**408 Request Timeout**
+
+```json
+{
+  "error": {
+    "code": "REQUEST_TIMEOUT",
+    "message": "The request took too long to process."
+  }
 }
 ```
 
@@ -1844,10 +1888,6 @@ Update character asset.
 ## 8. Communication Service
 
 **Docker Hub Repository:** `m1rrerror/mafia-communication-service`
-
-## API Reference
-
----
 
 ### Get Lobby
 
@@ -1859,20 +1899,22 @@ Update character asset.
 
 ```json
 {
-  "id": "test",
-  "privateChannels": {
-    "detectives": {
-      "name": "detectives",
-      "members": {
-        "2": true,
-        "3": true
-      }
-    },
-    "mafia": {
-      "name": "mafia",
-      "members": {
-        "0": true,
-        "1": true
+  "data": {
+    "id": "test",
+    "privateChannels": {
+      "detectives": {
+        "name": "detectives",
+        "members": {
+          "2": true,
+          "3": true
+        }
+      },
+      "mafia": {
+        "name": "mafia",
+        "members": {
+          "0": true,
+          "1": true
+        }
       }
     }
   }
@@ -1892,6 +1934,7 @@ Update character asset.
 }
 ```
 
+
 ---
 
 ### Create Lobby
@@ -1904,23 +1947,17 @@ Update character asset.
 
 ```json
 {
-  "lobbyId": "test",
-  "privateChannels": [
-    {
-      "channelName": "mafia",
-      "memberIds": [
-        0,
-        1
-      ]
-    },
-    {
-      "channelName": "detectives",
-      "memberIds": [
-        2,
-        3
-      ]
-    }
-  ]
+    "lobbyId": "test",
+    "privateChannels": [
+        {
+            "channelName": "mafia",
+            "memberIds": [0, 1]
+        },
+        {
+            "channelName": "detectives",
+            "memberIds": [2, 3]
+        }
+    ]
 }
 ```
 
@@ -1928,20 +1965,22 @@ Update character asset.
 
 ```json
 {
-  "id": "test",
-  "privateChannels": {
-    "detectives": {
-      "name": "detectives",
-      "members": {
-        "2": true,
-        "3": true
-      }
-    },
-    "mafia": {
-      "name": "mafia",
-      "members": {
-        "0": true,
-        "1": true
+  "data": {
+    "id": "test",
+    "privateChannels": {
+      "detectives": {
+        "name": "detectives",
+        "members": {
+          "2": true,
+          "3": true
+        }
+      },
+      "mafia": {
+        "name": "mafia",
+        "members": {
+          "0": true,
+          "1": true
+        }
       }
     }
   }
@@ -1961,6 +2000,7 @@ Update character asset.
 }
 ```
 
+
 ---
 
 ### Delete Lobby
@@ -1973,7 +2013,9 @@ Update character asset.
 
 ```json
 {
-  "message": "Lobby deleted successfully"
+  "data": {
+    "message": "Lobby deleted successfully"
+  }
 }
 ```
 
@@ -1990,6 +2032,7 @@ Update character asset.
 }
 ```
 
+
 ---
 
 ### Send Global Message
@@ -2005,21 +2048,21 @@ Update character asset.
 **Request Body:** [ChatMessage Model](#chatmessage-model)
 
 **Success Response (200):**
-
 ```json
 {
-  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
-  "senderId": 123,
-  "senderName": "TestUser",
-  "content": "Hello, world!",
-  "timestamp": "2025-09-09T20:30:00.123Z"
+  "data": {
+    "lobbyId": "test",
+    "senderId": 0,
+    "senderName": "mirrerror",
+    "content": "test message",
+    "timestamp": "2025-10-04T18:27:46.9786613Z"
+  }
 }
 ```
 
 **Error Responses:**
 
 **400 Bad Request - Validation Error**
-
 ```json
 {
   "error": {
@@ -2030,7 +2073,6 @@ Update character asset.
 ```
 
 **400 Bad Request - Chat Disabled**
-
 ```json
 {
   "error": {
@@ -2041,7 +2083,6 @@ Update character asset.
 ```
 
 **404 Not Found**
-
 ```json
 {
   "error": {
@@ -2067,22 +2108,22 @@ Update character asset.
 **Request Body:** [ChatMessage Model](#chatmessage-model)
 
 **Success Response (200):**
-
 ```json
 {
-  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
-  "channelName": "detectives",
-  "senderId": 123,
-  "senderName": "TestUser",
-  "content": "Hello, world!",
-  "timestamp": "2025-09-09T20:30:00.123Z"
+  "data": {
+    "channelName": "detectives",
+    "lobbyId": "test",
+    "senderId": 2,
+    "senderName": "mirrerror",
+    "content": "test message",
+    "timestamp": "2025-10-04T18:28:28.3525069Z"
+  }
 }
 ```
 
 **Error Responses:**
 
 **400 Bad Request - Validation Error**
-
 ```json
 {
   "error": {
@@ -2093,7 +2134,6 @@ Update character asset.
 ```
 
 **403 Forbidden**
-
 ```json
 {
   "error": {
@@ -2104,7 +2144,6 @@ Update character asset.
 ```
 
 **404 Not Found - Lobby**
-
 ```json
 {
   "error": {
@@ -2115,7 +2154,6 @@ Update character asset.
 ```
 
 **404 Not Found - Channel**
-
 ```json
 {
   "error": {
@@ -2134,27 +2172,28 @@ Update character asset.
 **Description:** Enables/disables (toggles) the global chat in the specified lobby.
 
 **Success Response (200) - Chat Enabled:**
-
 ```json
 {
-  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
-  "isGlobalChatEnabled": true
+  "data": {
+    "lobbyId": "test",
+    "isGlobalChatEnabled": true
+  }
 }
 ```
 
 **Success Response (200) - Chat Disabled:**
-
 ```json
 {
-  "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
-  "isGlobalChatEnabled": false
+  "data": {
+    "lobbyId": "test",
+    "isGlobalChatEnabled": false
+  }
 }
 ```
 
 **Error Responses:**
 
 **404 Not Found**
-
 ```json
 {
   "error": {
@@ -2163,6 +2202,7 @@ Update character asset.
   }
 }
 ```
+
 
 ---
 
@@ -2179,22 +2219,19 @@ Update character asset.
 **Success Response (200):**
 
 ```json
-[
-  {
-    "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
-    "senderId": 123,
-    "senderName": "TestUser",
-    "content": "Hello, world!",
-    "timestamp": "2025-09-09T20:30:00.123Z"
-  },
-  {
-    "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
-    "senderId": 456,
-    "senderName": "AnotherUser",
-    "content": "Welcome!",
-    "timestamp": "2025-09-09T20:31:10.456Z"
-  }
-]
+{
+  "data": [
+    {
+      "id": "04abf639-2eac-4711-9792-d48068de45b0",
+      "lobbyId": "test",
+      "channelName": null,
+      "senderId": 0,
+      "senderName": "mirrerror",
+      "content": "test message",
+      "timestamp": "2025-10-04T18:27:46.978661Z"
+    }
+  ]
+}
 ```
 
 **Error Responses:**
@@ -2227,24 +2264,19 @@ Update character asset.
 **Success Response (200):**
 
 ```json
-[
-  {
-    "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
-    "channelName": "detectives",
-    "senderId": 123,
-    "senderName": "TestUser",
-    "content": "We should meet tonight.",
-    "timestamp": "2025-09-09T20:30:00.123Z"
-  },
-  {
-    "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
-    "channelName": "detectives",
-    "senderId": 456,
-    "senderName": "AnotherUser",
-    "content": "Agreed.",
-    "timestamp": "2025-09-09T20:32:20.789Z"
-  }
-]
+{
+  "data": [
+    {
+      "id": "4d859f97-b693-4219-b976-684bec8da878",
+      "lobbyId": "test",
+      "channelName": "detectives",
+      "senderId": 2,
+      "senderName": "mirrerror",
+      "content": "test message",
+      "timestamp": "2025-10-04T18:28:28.352506Z"
+    }
+  ]
+}
 ```
 
 **Error Responses:**
@@ -2282,6 +2314,7 @@ Update character asset.
 }
 ```
 
+
 ---
 
 ### Get Private Chat Channels
@@ -2293,10 +2326,12 @@ Update character asset.
 **Success Response (200):**
 
 ```json
-[
-  "detectives",
-  "mafia"
-]
+{
+  "data": [
+    "detectives",
+    "mafia"
+  ]
+}
 ```
 
 **Error Responses:**
@@ -2312,6 +2347,7 @@ Update character asset.
 }
 ```
 
+
 ---
 
 ## SignalR Hub Reference
@@ -2322,13 +2358,13 @@ Update character asset.
 
 ### Server Methods (Client → Server)
 
-| Method                                                                        | Description                                                                                                               |
-|-------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| `JoinGlobalChat(string lobbyId, long userId)`                                 | Adds the specified user to the global chat in the specified lobby.                                                        |
-| `LeaveGlobalChat(string lobbyId, long userId)`                                | Removes the specified user from the global chat in the specified lobby.                                                   |
-| `JoinPrivateChannel(string lobbyId, string channelName, long userId)`         | Adds the specified user to the specified private channel.                                                                 |
-| `LeavePrivateChannel(string lobbyId, string channelName, long userId)`        | Removes the speicified user from the specified private channel.                                                           |
-| `SendGlobalMessage(string lobbyId, ChatMessage message)`                      | Broadcasts a message to the global chat in the specified lobby. Throws `HubException` on validation errors.               |
+| Method                                                                        | Description                                                                            |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `JoinGlobalChat(string lobbyId, long userId)`                                             | Adds the specified user to the global chat in the specified lobby.                                                     |
+| `LeaveGlobalChat(string lobbyId, long userId)`                                            | Removes the specified user from the global chat in the specified lobby.                                                |
+| `JoinPrivateChannel(string lobbyId, string channelName, long userId)`                      | Adds the specified user to the specified private channel.                                                  |
+| `LeavePrivateChannel(string lobbyId, string channelName, long userId)`                     | Removes the speicified user from the specified private channel.                                             |
+| `SendGlobalMessage(string lobbyId, ChatMessage message)`                      | Broadcasts a message to the global chat in the specified lobby. Throws `HubException` on validation errors.    |
 | `SendPrivateMessage(string channelName, string lobbyId, ChatMessage message)` | Broadcasts a message to the specified private channel in the specified lobby. Throws `HubException` on validation errors. |
 
 ---
@@ -2336,8 +2372,8 @@ Update character asset.
 ### Client Methods (Server → Client)
 
 | Method                                         | Description                                                |
-|------------------------------------------------|------------------------------------------------------------|
-| `ReceiveGlobalMessage(ChatResponse response)`  | Triggered when a new message arrives in a global chat.     |
+| ---------------------------------------------- | ---------------------------------------------------------- |
+| `ReceiveGlobalMessage(ChatResponse response)`  | Triggered when a new message arrives in a global chat.    |
 | `ReceivePrivateMessage(ChatResponse response)` | Triggered when a new message arrives in a private channel. |
 
 ---
@@ -2346,11 +2382,11 @@ Update character asset.
 
 ### ChatMessage Model
 
-| Field        | Type   | Description                     | Validation Rules                        |
-|--------------|--------|---------------------------------|-----------------------------------------|
-| `senderId`   | long   | The unique ID of the sender     | Required, must be ≥ 0                   |
-| `senderName` | string | The display name of the sender  | Required, 2–50 characters               |
-| `content`    | string | The text content of the message | Required, not empty, max 200 characters |
+| Field       | Type   | Description                          | Validation Rules |
+|-------------|--------|--------------------------------------|------------------|
+| `senderId`  | long   | The unique ID of the sender         | Required, must be ≥ 0 |
+| `senderName`| string | The display name of the sender      | Required, 2–50 characters |
+| `content`   | string | The text content of the message     | Required, not empty, max 200 characters |
 
 **Example:**
 
@@ -2366,16 +2402,15 @@ Update character asset.
 
 ### ChatResponse Model
 
-| Field        | Type     | Description               |
-|--------------|----------|---------------------------|
-| `lobbyId`    | string   | Lobby identifier          |
-| `senderId`   | long     | ID of the sender          |
-| `senderName` | string   | Name of the sender        |
-| `content`    | string   | Message content           |
-| `timestamp`  | DateTime | UTC timestamp from server |
+| Field       | Type     | Description               |
+|-------------|----------|---------------------------|
+| `lobbyId`   | string   | Lobby identifier          |
+| `senderId`  | long     | ID of the sender          |
+| `senderName`| string   | Name of the sender        |
+| `content`   | string   | Message content           |
+| `timestamp` | DateTime | UTC timestamp from server |
 
 **Example:**
-
 ```json
 {
   "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
@@ -2390,17 +2425,16 @@ Update character asset.
 
 ### PrivateChatResponse Model
 
-| Field         | Type     | Description               |
-|---------------|----------|---------------------------|
-| `channelName` | string   | Name of the channel       |
-| `lobbyId`     | string   | Lobby identifier          |
-| `senderId`    | long     | ID of the sender          |
-| `senderName`  | string   | Name of the sender        |
-| `content`     | string   | Message content           |
-| `timestamp`   | DateTime | UTC timestamp from server |
+| Field       | Type     | Description |
+|-------------|----------|-------------|
+| `channelName` | string | Name of the channel |
+| `lobbyId`   | string   | Lobby identifier |
+| `senderId`  | long     | ID of the sender |
+| `senderName`| string   | Name of the sender |
+| `content`   | string   | Message content |
+| `timestamp` | DateTime | UTC timestamp from server |
 
 **Example:**
-
 ```json
 {
   "lobbyId": "550e8400-e29b-41d4-a716-446655440000",
@@ -2409,6 +2443,33 @@ Update character asset.
   "senderName": "TestUser",
   "content": "Hello, world!",
   "timestamp": "2025-09-09T20:30:00.123Z"
+}
+```
+
+
+---
+
+## General Errors
+
+**503 Service Unavailable**
+
+```json
+{
+  "error": {
+    "code": "CONCURRENCY_LIMIT_REACHED",
+    "message": "The service is temporarily overloaded. Please try again later."
+  }
+}
+```
+
+**408 Request Timeout**
+
+```json
+{
+  "error": {
+    "code": "REQUEST_TIMEOUT",
+    "message": "The request took too long to process."
+  }
 }
 ```
 
