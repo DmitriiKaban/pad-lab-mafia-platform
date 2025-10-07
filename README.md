@@ -2169,7 +2169,7 @@ Update character asset.
 
 **Endpoint:** `POST /api/chat/global/{lobbyId}/toggle`
 
-**Description:** Enables/disables (toggles) the global chat in the specified lobby.
+**Description:** Enables/disables (toggles) the global chat in the specified lobby. Broadcasts the new status to all clients in the lobby via WebSocket.
 
 **Success Response (200) - Chat Enabled:**
 ```json
@@ -2203,6 +2203,41 @@ Update character asset.
 }
 ```
 
+---
+
+### Get Global Chat Status
+
+**Endpoint:** `GET /api/chat/global/{lobbyId}/status`
+
+**Description:** Retrieves the current status of the global chat (enabled/disabled) for the specified lobby.
+
+**URL Parameters:**
+
+* `lobbyId` *(string)* – Unique lobby identifier.
+
+**Success Response (200):**
+
+```json
+{
+  "data": {
+    "lobbyId": "test",
+    "isGlobalChatEnabled": true
+  }
+}
+```
+
+**Error Responses:**
+
+**404 Not Found**
+
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
 
 ---
 
@@ -2456,6 +2491,7 @@ Update character asset.
 | ---------------------------------------------- | ---------------------------------------------------------- |
 | `ReceiveGlobalMessage(ChatResponse response)`  | Triggered when a new message arrives in a global chat.    |
 | `ReceivePrivateMessage(ChatResponse response)` | Triggered when a new message arrives in a private channel. |
+| `GlobalChatStatusChanged(GlobalChatStatusResponse response)` | Triggered when the global chat status is toggled (enabled/disabled). |
 | `ReceiveAnnouncement(Announcement response)` | Triggered when a new announcement is sent to the lobby. |
 
 ---
@@ -2528,6 +2564,23 @@ Update character asset.
 }
 ```
 
+---
+
+### GlobalChatStatusResponse Model
+
+| Field                  | Type    | Description                                |
+| ---------------------- | ------- | ------------------------------------------ |
+| `lobbyId`              | string  | Lobby identifier                           |
+| `isGlobalChatEnabled`  | boolean | Whether global chat is enabled or disabled |
+
+**Example:**
+
+```json
+{
+  "lobbyId": "test",
+  "isGlobalChatEnabled": true
+}
+```
 
 ---
 
