@@ -2350,6 +2350,86 @@ Update character asset.
 
 ---
 
+### Send Announcement
+
+**Endpoint:** `POST /api/chat/announcement/{lobbyId}`
+
+**Description:** Sends a real-time announcement to all users in the lobby and saves it.
+
+**Request Body:**
+
+```json
+{
+  "content": "Night has fallen. Discuss your suspicions!"
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+  "data": {
+    "id": "0e3d9373-038e-4d03-a5ea-0cd1c4d648db",
+    "lobbyId": "test",
+    "content": "Night has fallen. Discuss your suspicions!",
+    "timestamp": "2025-10-07T18:42:13.521Z"
+  }
+}
+```
+
+**Error Responses:**
+
+**404 Not Found**
+
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
+
+---
+
+### Get Announcement History
+
+**Endpoint:** `GET /api/chat/announcement/{lobbyId}/history`
+
+**Description:** Returns previously sent announcements for a lobby.
+
+**Success Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "id": "0e3d9373-038e-4d03-a5ea-0cd1c4d648db",
+      "lobbyId": "test",
+      "content": "Night has fallen. Discuss your suspicions!",
+      "timestamp": "2025-10-07T18:42:13.521Z"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+**404 Not Found**
+
+```json
+{
+  "error": {
+    "code": "LOBBY_NOT_FOUND",
+    "message": "Lobby does not exist"
+  }
+}
+```
+
+
+---
+
 ## SignalR Hub Reference
 
 **Endpoint**: `WS /chathub`
@@ -2366,6 +2446,7 @@ Update character asset.
 | `LeavePrivateChannel(string lobbyId, string channelName, long userId)`                     | Removes the speicified user from the specified private channel.                                             |
 | `SendGlobalMessage(string lobbyId, ChatMessage message)`                      | Broadcasts a message to the global chat in the specified lobby. Throws `HubException` on validation errors.    |
 | `SendPrivateMessage(string channelName, string lobbyId, ChatMessage message)` | Broadcasts a message to the specified private channel in the specified lobby. Throws `HubException` on validation errors. |
+| `SendAnnouncement(string lobbyId, AnnouncementDto message)` | Broadcasts a real-time announcement to all in lobby. |
 
 ---
 
@@ -2375,6 +2456,7 @@ Update character asset.
 | ---------------------------------------------- | ---------------------------------------------------------- |
 | `ReceiveGlobalMessage(ChatResponse response)`  | Triggered when a new message arrives in a global chat.    |
 | `ReceivePrivateMessage(ChatResponse response)` | Triggered when a new message arrives in a private channel. |
+| `ReceiveAnnouncement(Announcement response)` | Triggered when a new announcement is sent to the lobby. |
 
 ---
 
@@ -2443,6 +2525,46 @@ Update character asset.
   "senderName": "TestUser",
   "content": "Hello, world!",
   "timestamp": "2025-09-09T20:30:00.123Z"
+}
+```
+
+
+---
+
+### Announcement Model
+
+| Field       | Type     | Description                           |
+| ----------- | -------- | ------------------------------------- |
+| `id`        | Guid     | Unique identifier of the announcement |
+| `lobbyId`   | string   | Lobby where the announcement was sent |
+| `content`   | string   | The announcement message              |
+| `timestamp` | DateTime | UTC time the announcement was sent    |
+
+**Example:**
+
+```json
+{
+  "id": "0e3d9373-038e-4d03-a5ea-0cd1c4d648db",
+  "lobbyId": "test",
+  "content": "Night has fallen. Discuss your suspicions!",
+  "timestamp": "2025-10-07T18:42:13.521Z"
+}
+```
+
+
+---
+
+### AnnouncementDto Model
+
+| Field     | Type   | Validation                   |
+| --------- | ------ | ---------------------------- |
+| `content` | string | Required, max 200 characters |
+
+**Example:**
+
+```json
+{
+  "content": "Night has fallen. Discuss your suspicions!"
 }
 ```
 
