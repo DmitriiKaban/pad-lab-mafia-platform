@@ -377,7 +377,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"rumourType\": \"role\",\n    \"senderId\": 0,\n    \"targetId\": 1\n}",
+					"raw": "{\n    \"gameId\": 1,\n\t\"rumourType\": \"role\",\n    \"senderId\": 0,\n    \"targetId\": 1\n}",
 					"options": {
 						"raw": {
 							"language": "json"
