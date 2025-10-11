@@ -1763,7 +1763,8 @@ Update character asset.
 **Request Body:**
 ```json
 {
-  "rumourType": "role",
+  "gameId": 1,
+  "rumourType": "activity",
   "senderId": 0,
   "targetId": 1
 }
@@ -1777,7 +1778,7 @@ Update character asset.
   "data": {
     "id": 1,
     "lobbyId": "test",
-    "type": "role",
+    "type": "activity",
     "ownerId": 0,
     "targetId": 1,
     "text": "Player X was seen near the victim's house last night",
@@ -1825,7 +1826,7 @@ Update character asset.
       {
         "id": 1,
         "lobbyId": "test",
-        "type": "role",
+        "type": "activity",
         "ownerId": 0,
         "targetId": 1,
         "text": "Player X was seen near the victim's house last night",
@@ -1834,7 +1835,7 @@ Update character asset.
       {
         "id": 2,
         "lobbyId": "test",
-        "type": "role",
+        "type": "activity",
         "ownerId": 0,
         "targetId": 2,
         "text": "Player Y has been acting suspiciously",
