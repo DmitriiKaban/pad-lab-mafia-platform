@@ -83,8 +83,13 @@ The game continues with a cycle of day and night phases until one of two conditi
 
 ## Architectural Diagram
 
-<img width="1390" height="1032" alt="image" src="./documentation-resources/Diagram_PAD_lab0.jpg" />
-The diagram illustrates the client-server architecture of the Mafia Platform. The client app communicates with a suite of modular microservices, each responsible for a distinct domain such as user management, gameplay orchestration, roleplay logic, voting, tasks, rumors, and more. Every service operates independently with its own database, enabling scalability and maintainability.
+<img width="1390" height="1032" alt="image" src="./documentation-resources/lab2Pad.drawio.png" />
+
+
+The diagram depicts a gateway-mediated microservice architecture for the Mafia Platform. The **client** communicates **exclusively with the API Gateway**, which routes both **client→service** and **service↔service** calls. Each domain service (Game, Voting, Task, Roleplay, Communication, Character, Shop, Rumor, Town, User Management) is **loosely coupled** and **owns its database**, enabling independent scaling and deployments. Cross-cutting concerns—**authentication, authorization, rate limiting, observability, and error handling**—are centralized in the Gateway.
+
+A platform-wide **caching layer** uses **Redis DB**. The Gateway and services cache frequently accessed read paths (e.g., session/phase lookups, player profiles) and token/session data to reduce latency and load on backing stores. This design consolidates traffic through the Gateway, removes direct inter-service exposure, and preserves clear data ownership per service database.
+
 
 Arrows between services represent internal API calls used to validate actions, synchronize game state, and exchange
 filtered data—such as announcements, shop updates, character details, and team information. This design supports a
