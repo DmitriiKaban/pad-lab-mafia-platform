@@ -83,17 +83,14 @@ The game continues with a cycle of day and night phases until one of two conditi
 
 ## Architectural Diagram
 
-<img width="1390" height="1032" alt="image" src="./documentation-resources/lab2Pad.drawio.png" />
+<img width="1390" height="1032" alt="image" src="./documentation-resources/Diagram_PAD_lab3.png" />
 
 
-The diagram depicts a gateway-mediated microservice architecture for the Mafia Platform. The **client** communicates **exclusively with the API Gateway**, which routes both **client→service** and **service↔service** calls. Each domain service (Game, Voting, Task, Roleplay, Communication, Character, Shop, Rumor, Town, User Management) is **loosely coupled** and **owns its database**, enabling independent scaling and deployments. Cross-cutting concerns—**authentication, authorization, rate limiting, observability, and error handling**—are centralized in the Gateway.
+The diagram illustrates a scalable, distributed microservices architecture for the Mafia Platform, incorporating service discovery, load balancing, health monitoring, and circuit breaker patterns. The architecture enables horizontal scaling with multiple service instances (2-3 replicas per service), automatic failure detection and recovery, and centralized observability through Grafana + Prometheus monitoring.
 
-A platform-wide **caching layer** uses **Redis DB**. The Gateway and services cache frequently accessed read paths (e.g., session/phase lookups, player profiles) and token/session data to reduce latency and load on backing stores. This design consolidates traffic through the Gateway, removes direct inter-service exposure, and preserves clear data ownership per service database.
+The Client communicates exclusively with the API Gateway, which implements Round-Robin and service-load-based load balancing. The Gateway dynamically discovers healthy service instances through the Service Discovery component, which maintains a real-time registry of all microservices. Service Discovery performs automated health checks every 30 seconds, implements circuit breaker logic, and provides log aggregation endpoints. The Redis DB serves as a distributed cache for sessions, authentication tokens, and frequently accessed data, reducing database load across all services.
 
-
-Arrows between services represent internal API calls used to validate actions, synchronize game state, and exchange
-filtered data—such as announcements, shop updates, character details, and team information. This design supports a
-robust, event-driven multiplayer experience with clear separation of concerns.
+Each microservice (Game, Voting, Task, Town, Communication, Roleplay, Character, Rumor, Shop, User Management) runs in multiple instances with its own dedicated database, ensuring data ownership and independent scaling. Services register themselves with Service Discovery on startup. Inter-service communication flows through the Gateway for consistency, with arrows representing API calls for state validation, synchronization, and data exchange.
 
 # Technologies & Communication Patterns
 
