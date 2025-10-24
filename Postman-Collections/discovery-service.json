@@ -1,0 +1,361 @@
+{
+	"info": {
+		"_postman_id": "9ee2f9d8-f132-4548-bbd9-f29355b84690",
+		"name": "Gateway Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Character service",
+			"item": [
+				{
+					"name": "Get Items",
+					"id": "e3cc7dad-420a-4a6a-a6e5-edc8aff128e4",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{host}}/api/character/100/items"
+					},
+					"response": []
+				},
+				{
+					"name": "Add item",
+					"id": "b0418055-6dce-4827-a47a-fd4fa4e9a6dc",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"itemId\": 1,\r\n  \"quantity\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{host}}/api/character/100/items"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete items",
+					"id": "69914e15-7473-4d04-adc8-0be483abb3f1",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "{{host}}/api/character/100/items/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Use Item",
+					"id": "fcc150a2-5dd2-4837-87ad-e4d451181e58",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{host}}/api/character/100/items/4/use"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Asset",
+					"id": "190aca46-f905-433d-bfbd-c2edb1cc2847",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"slot\": \"INVALID_SLOT\",\r\n  \"assetId\": 8\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{host}}/api/character/100/assets"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Player Assets",
+					"id": "3a36cfe2-22ac-43de-922d-4d84c1230d83",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{host}}/api/character/100/appearance"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Asset",
+					"id": "eba0b09a-448c-497f-9487-a29e3c3911d3",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"slot\": \"hair\",\r\n    \"assetId\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{host}}/api/character/100/assets"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Assets",
+					"id": "b7f570f1-6a13-4c0d-a947-31e95ef78040",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{host}}/api/character/assets/slots"
+					},
+					"response": []
+				}
+			],
+			"id": "3cf98874-4225-4c7e-a50b-e9e1ba1cefd5"
+		},
+		{
+			"name": "Town service",
+			"item": [
+				{
+					"name": "Get a location",
+					"id": "95602c91-99e7-4682-a742-bb2888b32961",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{host}}/api/town/locations/100"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Movements",
+					"id": "e4bd9e19-282f-4ee2-8d73-b7e3e07faa3f",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{host}}/api/town/movements/10"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Locations",
+					"id": "cdeb5d84-c0ce-48ea-8c81-a75ddce555d7",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{host}}/api/town/locations"
+					},
+					"response": []
+				},
+				{
+					"name": "Move Player",
+					"id": "74b34dd0-21ed-492a-8f88-af7f4fea5883",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"lobbyId\": 10,\r\n  \"playerId\": 101,\r\n  \"locationId\": 107\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{host}}/api/town/movements/move"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Player Movements",
+					"id": "d3118829-430a-4cf3-92dc-8a6172bb7d3d",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{host}}/api/town/movements/10/100"
+					},
+					"response": []
+				}
+			],
+			"id": "ebcfbb3b-9548-47ec-9725-487e45ca13b7"
+		},
+		{
+			"name": "Service Discovery",
+			"item": [
+				{
+					"name": "Service logs",
+					"id": "1b6d7a12-2153-4a40-85c2-4ece01ce9be1",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8989/api/discovery/logs/loki/download/service/town-service"
+					},
+					"response": []
+				},
+				{
+					"name": "All logs",
+					"id": "5e427b1a-0123-4b7f-9754-506d729e2b33",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8989/api/discovery/logs/loki/download/all"
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"id": "ebe8fc1b-048b-4ac7-8611-3310f759bdb7",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"serviceId\": \"adsf\",\r\n  \"instanceId\": \"adsf\",\r\n  \"host\": \"\",\r\n  \"port\": 0,\r\n  \"lastHeartbeat\": {},\r\n  \"status\": \"UP\",\r\n  \"metadata\": \"\",\r\n  \"systemLoad\": 0,\r\n  \"errorCount\": 0,\r\n  \"lastErrorTime\": {}\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8989/api/discovery/register"
+					},
+					"response": []
+				},
+				{
+					"name": "Discovery logs",
+					"id": "b405eace-13b6-41d1-8347-b30207e3ef58",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8989/api/discovery/logs"
+					},
+					"response": []
+				},
+				{
+					"name": "Deregister",
+					"id": "2f3073d9-8310-4197-99d2-d269406f4793",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8989/api/discovery/deregister/id"
+					},
+					"response": []
+				},
+				{
+					"name": "Get all services",
+					"id": "78e187ea-f0e3-49cf-9de1-c835f0f8d0be",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8989/api/discovery/services"
+					},
+					"response": []
+				},
+				{
+					"name": "Get best service",
+					"id": "d1949b77-373f-4e82-99e8-ff772eddfff3",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8989/api/discovery/services/town-service/instance"
+					},
+					"response": []
+				},
+				{
+					"name": "Get all isntances",
+					"id": "44123988-5269-4255-9553-a9168b54712b",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8989/api/discovery/services/town-service"
+					},
+					"response": []
+				}
+			],
+			"id": "4de4b4ae-fe33-417d-aa8e-c7253fdbf896"
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
