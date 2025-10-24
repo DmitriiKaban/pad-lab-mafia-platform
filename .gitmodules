@@ -33,3 +33,6 @@
 [submodule "gateway-service"]
 	path = gateway-service
 	url = https://github.com/mirrerror/mafia-platform-gateway-service
+[submodule "service-discovery"]
+	path = service-discovery
+	url = https://github.com/DmitriiKaban/ServiceDiscovery
