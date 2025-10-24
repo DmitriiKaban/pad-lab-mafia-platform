@@ -106,7 +106,7 @@ services:
     networks:
       - app_network
       
-  db_rumours_service:
+  er:
     image: postgres:latest
     environment:
       POSTGRES_USER: ${RUMOURS_POSTGRES_USER}
@@ -131,9 +131,6 @@ services:
       GATEWAY_SERVICE_URL: ${GATEWAY_SERVICE_URL}
     ports:
       - "8084:8080"
-    depends_on:
-      db_rumours_service:
-        condition: service_healthy
     networks:
       - app_network
 
@@ -279,7 +276,7 @@ services:
       - "${SHOP_SERVICE_POSTGRES_PORT}:5432"
     volumes:
       - shop_postgres_data:/var/lib/postgresql/data
-      - ./shop-init-db.sh:/docker-entrypoint-initdb.d/shop-init-db.sh:ro
+      - ./shop-init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     networks:
       - app_network
     healthcheck:
