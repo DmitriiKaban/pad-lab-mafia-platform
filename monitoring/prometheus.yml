@@ -1,0 +1,67 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'gateway-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - 'gateway-service:8080'
+
+  - job_name: 'voting-service'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'voting-service:8000'
+
+  - job_name: 'task-service'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'voting-service:8000'
+
+  - job_name: 'discovery-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - 'discovery-service:8989'
+
+  - job_name: 'town-service'
+    metrics_path: /metrics/prometheus
+    static_configs:
+      - targets:
+          - 'town-service:8080'
+
+  - job_name: 'character-service'
+    metrics_path: /metrics/prometheus
+    static_configs:
+      - targets:
+          - 'character-service:8081'
+
+  - job_name: 'mafia-rumours-service'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'rumours-service:8080'
+
+  - job_name: 'user-management-service'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'user-management-service:80'
+
+  - job_name: 'game-service'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'game-service:80'
+
+  - job_name: 'mafia-communication-service'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'communication-service:8080'
