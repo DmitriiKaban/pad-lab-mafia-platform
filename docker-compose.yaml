@@ -1,22 +1,294 @@
-version: '3.8'
 services:
-  db_town_service:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: ${TOWN_SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${TOWN_SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${TOWN_SERVICE_POSTGRES_DB}
+
+  gateway-service:
+    image: m1rrerror/mafia-gateway-service:latest
+    container_name: gateway-service
     ports:
-      - "${TOWN_SERVICE_POSTGRES_DB_PORT}:5432"
-    volumes:
-      - town_postgres_data:/var/lib/postgresql/data
+      - "8088:8080"
+    depends_on:
+      - redis-gateway
+      - communication-service
+      - user-management-service
+    environment:
+      - SPRING_REDIS_HOST=redis-gateway
+      - SPRING_REDIS_PORT=6379
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - SERVICES_USER_URL=${SERVICES_USER_URL}
+      - USER_MANAGEMENT_SERVICE_HOST=user-management-service
+      - USER_MANAGEMENT_SERVICE_PORT=80
+      - COMMUNICATION_SERVICE_HOST=communication-service
+      - COMMUNICATION_SERVICE_PORT=8080
+      - RUMOURS_SERVICE_HOST=rumours-service
+      - RUMOURS_SERVICE_PORT=8080
+      - CHARACTER_SERVICE_HOST=character-service
+      - CHARACTER_SERVICE_PORT=8081
+      - TOWN_SERVICE_HOST=town-service
+      - TOWN_SERVICE_PORT=8080
+      - GAME_SERVICE_HOST=game-service
+      - GAME_SERVICE_PORT=80
+      - GATEWAY_SERVICE_URL=http://gateway-service:8080
+      - TASK_SERVICE_HOST=task-service
+      - TASK_SERVICE_PORT=8000
+      - VOTING_SERVICE_HOST=voting-service
+      - VOTING_SERVICE_PORT=8000
+      - DISCOVERY_SERVICE_URL=${DISCOVERY_SERVICE_URL}
     networks:
-      - app_network
+      - app-network
+    deploy:
+      replicas: 1
+      endpoint_mode: dnsrr
+
+  redis-gateway:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --protected-mode no --appendonly yes
+    volumes:
+      - redis-gateway-data:/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${TOWN_SERVICE_POSTGRES_USER} -d ${TOWN_SERVICE_POSTGRES_DB}"]
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      - app-network
+    deploy:
+      replicas: 1
+      endpoint_mode: dnsrr
+    restart: unless-stopped
+
+  discovery-service:
+    image: m1rrerror/mafia-discovery-service:latest
+    environment:
+      - SERVER_PORT=8989
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO}
+      - ALERT_EMAIL_FROM=${ALERT_EMAIL_FROM}
+      - ALERTS_ENABLED=${ALERTS_ENABLED}
+    ports:
+      - "8989:8989"
+    networks:
+      - app-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://discovery-service:8989/actuator/health" ]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
+
+  task-service:
+    image: iraned/task-service:latest
+    pull_policy: always
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - .env
+    environment:
+      SERVICE_NAME: task-service
+      SERVICE_PORT: 8000
+      DISCOVERY_SERVICE_URL: http://discovery-service:8989
+      POSTGRES_USER: ${TASK_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${TASK_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${TASK_SERVICE_POSTGRES_DB}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+    networks:
+      - app-network
+    deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
+    depends_on:
+      db:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
+  voting-service:
+    image: iraned/voting-service:latest
+    working_dir: /app
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - .env
+    environment:
+      SERVICE_NAME: voting-service
+      SERVICE_PORT: 8000
+      DISCOVERY_SERVICE_URL: http://discovery-service:8989
+      VOTING_SERVICE_POSTGRES_USER: ${VOTING_SERVICE_POSTGRES_USER}
+      VOTING_SERVICE_POSTGRES_PASSWORD: ${VOTING_SERVICE_POSTGRES_PASSWORD}
+      VOTING_SERVICE_POSTGRES_DB: ${VOTING_SERVICE_POSTGRES_DB}
+      VOTING_SERVICE_DB_HOST: db_voting_service
+      VOTING_SERVICE_POSTGRES_PORT: 5432
+    networks:
+      - app-network
+    deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
+    depends_on:
+      db_voting_service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
+  town-service:
+    image: dimaubuntu/town-service:latest
+    environment:
+      - SPRING_APPLICATION_NAME=town-service
+      - SERVER_PORT=8080
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8989
+      - TOWN_SERVICE_POSTGRES_HOST=db_town_service
+      - TOWN_SERVICE_POSTGRES_DB_PORT=5432
+      - TOWN_SERVICE_POSTGRES_USER=${TOWN_SERVICE_POSTGRES_USER}
+      - TOWN_SERVICE_POSTGRES_PASSWORD=${TOWN_SERVICE_POSTGRES_PASSWORD}
+      - TOWN_SERVICE_POSTGRES_DB=${TOWN_SERVICE_POSTGRES_DB}
+      - GATEWAY_SERVICE_URL=${GATEWAY_SERVICE_URL}
+    networks:
+      - app-network
+    deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
+
+  db_voting_service:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${VOTING_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${VOTING_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${VOTING_SERVICE_POSTGRES_DB}
+    ports:
+      - "${VOTING_SERVICE_POSTGRES_PORT}:5432"
+    networks:
+      - app-network
+    volumes:
+      - voting_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${VOTING_SERVICE_POSTGRES_USER} -d ${VOTING_SERVICE_POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  character-service:
+    image: dimaubuntu/character-service:latest
+    environment:
+      - SPRING_APPLICATION_NAME=character-service
+      - SERVER_PORT=8081
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8989
+      - CHARACTER_SERVICE_POSTGRES_HOST=db_character_service
+      - CHARACTER_SERVICE_POSTGRES_DB_PORT=5432
+      - CHARACTER_SERVICE_POSTGRES_USER=${CHARACTER_SERVICE_POSTGRES_USER}
+      - CHARACTER_SERVICE_POSTGRES_PASSWORD=${CHARACTER_SERVICE_POSTGRES_PASSWORD}
+      - CHARACTER_SERVICE_POSTGRES_DB=${CHARACTER_SERVICE_POSTGRES_DB}
+      - GATEWAY_SERVICE_URL=${GATEWAY_SERVICE_URL}
+    networks:
+      - app-network
+    deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
+
+  db_town_service:
+    image: postgres:17
+    environment:
+      - POSTGRES_USER=${TOWN_SERVICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${TOWN_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${TOWN_SERVICE_POSTGRES_DB}
+    volumes:
+      - town_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    deploy:
+      replicas: 1
+
+  db_character_service:
+    image: postgres:17
+    environment:
+      - POSTGRES_USER=${CHARACTER_SERVICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${CHARACTER_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${CHARACTER_SERVICE_POSTGRES_DB}
+    volumes:
+      - character_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    deploy:
+      replicas: 1
+
+  db_rumours_service:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${RUMOURS_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${RUMOURS_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${RUMOURS_POSTGRES_DB}
+    ports:
+      - "${RUMOURS_POSTGRES_DB_PORT}:5432"
+    volumes:
+      - rumours_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${RUMOURS_POSTGRES_USER} -d ${RUMOURS_POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rumours-service:
+    image: m1rrerror/mafia-rumours-service:latest
+    environment:
+      DB_CONNECTION_STRING: "Host=db_rumours_service;Port=5432;Database=${RUMOURS_POSTGRES_DB};Username=${RUMOURS_POSTGRES_USER};Password=${RUMOURS_POSTGRES_PASSWORD}"
+      GATEWAY_SERVICE_URL: ${GATEWAY_SERVICE_URL}
+      DISCOVERY_SERVICE_URL: ${DISCOVERY_SERVICE_URL}
+      SERVICE_HOST: rumours-service
+      SERVICE_PORT: 8080
+    depends_on:
+      db_rumours_service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
+
+  db_communication_service:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${COMM_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${COMM_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${COMM_POSTGRES_DB}
+    ports:
+      - "${COMM_POSTGRES_DB_PORT}:5432"
+    volumes:
+      - communication_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${COMM_POSTGRES_USER} -d ${COMM_POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  communication-service:
+    image: m1rrerror/mafia-communication-service:latest
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db_communication_service;Port=5432;Database=${COMM_POSTGRES_DB};Username=${COMM_POSTGRES_USER};Password=${COMM_POSTGRES_PASSWORD}"
+      DISCOVERY_SERVICE_URL: ${DISCOVERY_SERVICE_URL}
+      SERVICE_HOST: communication-service
+      SERVICE_PORT: 8080
+    depends_on:
+      db_communication_service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
 
   db_user_management_service:
     image: postgres:14
@@ -29,181 +301,162 @@ services:
     volumes:
       - user_management_postgres_data:/var/lib/postgresql/data
     networks:
-      - app_network
+      - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${USER_MANAGEMENT_SERVICE_POSTGRES_USER} -d ${USER_MANAGEMENT_SERVICE_POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${USER_MANAGEMENT_SERVICE_POSTGRES_USER} -d ${USER_MANAGEMENT_SERVICE_POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  town_service:
-    image: dimaubuntu/town-service:0.5
-    environment:
-      TOWN_SERVICE_POSTGRES_HOST: db_town_service
-      TOWN_SERVICE_POSTGRES_DB_PORT: 5432
-      TOWN_SERVICE_POSTGRES_USER: ${TOWN_SERVICE_POSTGRES_USER}
-      TOWN_SERVICE_POSTGRES_PASSWORD: ${TOWN_SERVICE_POSTGRES_PASSWORD}
-      TOWN_SERVICE_POSTGRES_DB: ${TOWN_SERVICE_POSTGRES_DB}
-      SERVER_PORT: 8080
-    ports:
-      - "8082:8080"
-    depends_on:
-      db_town_service:
-        condition: service_healthy
-    networks:
-      - app_network
-
-  db_character_service:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: ${CHARACTER_SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${CHARACTER_SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${CHARACTER_SERVICE_POSTGRES_DB}
-    ports:
-      - "${CHARACTER_SERVICE_POSTGRES_DB_PORT}:5432"
-    volumes:
-      - character_postgres_data:/var/lib/postgresql/data
-    networks:
-      - app_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${CHARACTER_SERVICE_POSTGRES_USER} -d ${CHARACTER_SERVICE_POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  character_service:
-    image: dimaubuntu/character-service:0.6
-    environment:
-      CHARACTER_SERVICE_POSTGRES_HOST: db_character_service
-      CHARACTER_SERVICE_POSTGRES_DB_PORT: 5432
-      CHARACTER_SERVICE_POSTGRES_USER: ${CHARACTER_SERVICE_POSTGRES_USER}
-      CHARACTER_SERVICE_POSTGRES_PASSWORD: ${CHARACTER_SERVICE_POSTGRES_PASSWORD}
-      CHARACTER_SERVICE_POSTGRES_DB: ${CHARACTER_SERVICE_POSTGRES_DB}
-      SERVER_PORT: 8081
-    ports:
-      - "8083:8081"
-    depends_on:
-      db_character_service:
-        condition: service_healthy
-    networks:
-      - app_network
-
-
-  user_management_service:
+  user-management-service:
     image: alexandrina581/user-management-service:latest
+    pull_policy: always
+    command: uvicorn app.main:app --host 0.0.0.0 --port 80
+    env_file:
+      - .env
     environment:
-      USER_MANAGEMENT_SERVICE_POSTGRES_HOST: db_user_management_service
-      USER_MANAGEMENT_SERVICE_POSTGRES_DB_PORT: 5432
+      SERVICE_NAME: user-management-service
+      SERVICE_PORT: 80
+      DISCOVERY_SERVICE_URL: http://discovery-service:8989
       USER_MANAGEMENT_SERVICE_POSTGRES_USER: ${USER_MANAGEMENT_SERVICE_POSTGRES_USER}
       USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD: ${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}
       USER_MANAGEMENT_SERVICE_POSTGRES_DB: ${USER_MANAGEMENT_SERVICE_POSTGRES_DB}
-    command: uvicorn app.main:app --host 0.0.0.0 --port 80
-    ports:
-      - "8060:80"
+      USER_MANAGEMENT_SERVICE_POSTGRES_HOST: db_user_management_service
+      USER_MANAGEMENT_SERVICE_POSTGRES_PORT: 5432
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME}
+      SECRET_KEY: ${SECRET_KEY}
+      ALGORITHM: ${ALGORITHM}
     depends_on:
       db_user_management_service:
         condition: service_healthy
+      discovery-service:
+        condition: service_healthy
     networks:
-      - app_network
-      
-  db_rumours_service:
-    image: postgres:latest
+      - app-network
+    deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
+    labels:
+      logging: "promtail"
+      logging_jobname: "user-management-service"
+
+  db_game_service:
+    image: postgres:14
     environment:
-      POSTGRES_USER: ${RUMOURS_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${RUMOURS_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${RUMOURS_POSTGRES_DB}
+      POSTGRES_USER: ${GAME_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${GAME_SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${GAME_SERVICE_POSTGRES_DB}
     ports:
-      - "${RUMOURS_POSTGRES_DB_PORT}:5432"
+      - "5434:5432"
     volumes:
-      - rumours_postgres_data:/var/lib/postgresql/data
+      - game_postgres_data:/var/lib/postgresql/data
     networks:
-      - app_network
+      - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${RUMOURS_POSTGRES_USER} -d ${RUMOURS_POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${GAME_SERVICE_POSTGRES_USER} -d ${GAME_SERVICE_POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  rumours_service:
-    image: m1rrerror/mafia-rumours-service:latest
+  game-service:
+    image: alexandrina581/game-service:latest
+    pull_policy: always
+    env_file:
+      - .env
     environment:
-      DB_CONNECTION_STRING: "Host=db_rumours_service;Port=5432;Database=${RUMOURS_POSTGRES_DB};Username=${RUMOURS_POSTGRES_USER};Password=${RUMOURS_POSTGRES_PASSWORD}"
-      GATEWAY_SERVICE_URL: ${GATEWAY_SERVICE_URL}
-    ports:
-      - "8084:8080"
+      SERVICE_NAME: game-service
+      SERVICE_PORT: 80
+      SERVICE_PROTOCOL: http
+      SERVICE_TAGS: game,python,websocket
+      PORT: 80
+      DISCOVERY_SERVICE_URL: http://discovery-service:8989
+      GAME_SERVICE_POSTGRES_USER: ${GAME_SERVICE_POSTGRES_USER}
+      GAME_SERVICE_POSTGRES_PASSWORD: ${GAME_SERVICE_POSTGRES_PASSWORD}
+      GAME_SERVICE_POSTGRES_DB: ${GAME_SERVICE_POSTGRES_DB}
+      GAME_SERVICE_POSTGRES_HOST: db_game_service
+      GAME_SERVICE_POSTGRES_PORT: 5432
+      ROLEPLAY_SERVICE_URL: ${ROLEPLAY_SERVICE_URL}
+      VOTING_SERVICE_URL: ${VOTING_SERVICE_URL}
+      COMMUNICATION_SERVICE_URL: ${COMMUNICATION_SERVICE_URL}
+      TASK_SERVICE_URL: ${TASK_SERVICE_URL}
+      SHOP_SERVICE_URL: ${SHOP_SERVICE_URL}
     depends_on:
-      db_rumours_service:
+      db_game_service:
+        condition: service_healthy
+      discovery-service:
         condition: service_healthy
     networks:
-      - app_network
+      - app-network
+    deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
+    labels:
+      logging: "promtail"
+      logging_jobname: "game-service"
 
-  db_communication_service:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: ${COMM_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${COMM_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${COMM_POSTGRES_DB}
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
     ports:
-      - "${COMM_POSTGRES_DB_PORT}:5432"
+      - "9090:9090"
     volumes:
-      - communication_postgres_data:/var/lib/postgresql/data
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
     networks:
-      - app_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${COMM_POSTGRES_USER} -d ${COMM_POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  communication_service:
-    image: m1rrerror/mafia-communication-service:latest
-    environment:
-      ConnectionStrings__DefaultConnection: "Host=db_communication_service;Port=5432;Database=${COMM_POSTGRES_DB};Username=${COMM_POSTGRES_USER};Password=${COMM_POSTGRES_PASSWORD}"
-    ports:
-      - "8085:8080"
+      - app-network
     depends_on:
-      db_communication_service:
+      db:
         condition: service_healthy
-    networks:
-      - app_network
+      discovery-service:
+        condition: service_healthy
 
-  db_voting_service:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: ${VOTING_SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${VOTING_SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${VOTING_SERVICE_POSTGRES_DB}
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
     ports:
-      - "${VOTING_SERVICE_POSTGRES_PORT}:5432"
+      - "3000:3000"
     volumes:
-      - voting_postgres_data:/var/lib/postgresql/data
-    networks:
-      - app_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${VOTING_SERVICE_POSTGRES_USER} -d ${VOTING_SERVICE_POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  voting_service:
-    image: iraned/voting-service:1.2
-    environment:
-      VOTING_SERVICE_POSTGRES_USER: ${VOTING_SERVICE_POSTGRES_USER}
-      VOTING_SERVICE_POSTGRES_PASSWORD: ${VOTING_SERVICE_POSTGRES_PASSWORD}
-      VOTING_SERVICE_POSTGRES_DB: ${VOTING_SERVICE_POSTGRES_DB}
-      VOTING_SERVICE_POSTGRES_HOST: db_voting_service
-      VOTING_SERVICE_POSTGRES_PORT: "5432"
-    ports:
-      - "8000:8000"
+      - grafana_data:/var/lib/grafana
     depends_on:
-      db_voting_service:
-        condition: service_healthy
+      - prometheus
+      - loki
     networks:
-      - app_network
+      - app-network
 
+  loki:
+    image: grafana/loki:2.9.1
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - app-network
 
-  task-service-db:
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - app-network
+
+  db:
     image: postgres:16
+    container_name: task-service-db
+    restart: always
+    networks:
+      - app-network
     environment:
       POSTGRES_USER: ${TASK_SERVICE_POSTGRES_USER}
       POSTGRES_PASSWORD: ${TASK_SERVICE_POSTGRES_PASSWORD}
@@ -213,61 +466,10 @@ services:
     volumes:
       - task_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${TASK_SERVICE_POSTGRES_USER} -d ${TASK_SERVICE_POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - app_network
-
-  task-service:
-    image: iraned/task-service:1.2
-    env_file:
-      - .env
-    environment:
-      POSTGRES_HOST: "task-service-db"
-      POSTGRES_PORT: "5432"
-    depends_on:
-      task-service-db:
-        condition: service_healthy
-    networks:
-      - app_network
-    ports:
-      - "8001:8000"
-  # Roleplay Service Database
-  db_roleplay_service:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: ${ROLEPLAY_SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${ROLEPLAY_SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${ROLEPLAY_SERVICE_POSTGRES_DB}
-    ports:
-      - "${ROLEPLAY_SERVICE_POSTGRES_PORT}:5432"
-    volumes:
-      - roleplay_postgres_data:/var/lib/postgresql/data
-      - ./roleplay-init-db.sh:/docker-entrypoint-initdb.d/roleplay-init-db.sh:ro
-    networks:
-      - app_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${ROLEPLAY_SERVICE_POSTGRES_USER} -d ${ROLEPLAY_SERVICE_POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Roleplay Service
-  roleplay_service:
-    image: ${ROLEPLAY_SERVICE_IMAGE}:${ROLEPLAY_SERVICE_TAG}
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
-      - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__DefaultConnection=Host=db_roleplay_service;Port=5432;Database=${ROLEPLAY_SERVICE_POSTGRES_DB};Username=${ROLEPLAY_SERVICE_POSTGRES_USER};Password=${ROLEPLAY_SERVICE_POSTGRES_PASSWORD};Include Error Detail=true
-    ports:
-      - "${ROLEPLAY_SERVICE_PORT}:80"
-    depends_on:
-      db_roleplay_service:
-        condition: service_healthy
-    networks:
-      - app_network
+      test: [ "CMD-SHELL", "pg_isready -U ${TASK_SERVICE_POSTGRES_USER} -d ${TASK_SERVICE_POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   db_shop_service:
     image: postgres:15
@@ -279,78 +481,49 @@ services:
       - "${SHOP_SERVICE_POSTGRES_PORT}:5432"
     volumes:
       - shop_postgres_data:/var/lib/postgresql/data
-      - ./shop-init-db.sh:/docker-entrypoint-initdb.d/shop-init-db.sh:ro
+      - ./shop-init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     networks:
-      - app_network
+      - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${SHOP_SERVICE_POSTGRES_USER} -d ${SHOP_SERVICE_POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${SHOP_SERVICE_POSTGRES_USER} -d ${SHOP_SERVICE_POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
   shop_service:
-    image: ${SHOP_SERVICE_IMAGE}:${SHOP_SERVICE_TAG}
+    image: ${SHOP_SERVICE_IMAGE}:latest
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__DefaultConnection=Host=db_shop_service;Port=5432;Database=${SHOP_SERVICE_POSTGRES_DB};Username=${SHOP_SERVICE_POSTGRES_USER};Password=${SHOP_SERVICE_POSTGRES_PASSWORD};Include Error Detail=true
-      - UserServiceUrl=http://user_management_service:80
-      - CharacterServiceUrl=http://character_service:8081
-      - GameServiceUrl=http://town_service:8080
-    ports:
-      - "${SHOP_SERVICE_PORT}:80"
+      - UserServiceUrl=http://user_management-service:80
+      - CharacterServiceUrl=http://character-service:8081
+      - GameServiceUrl=http://town-service:8080
     depends_on:
       db_shop_service:
         condition: service_healthy
-      user_management_service:
-        condition: service_started
-      character_service:
-        condition: service_started
-      town_service:
-        condition: service_started
     networks:
-      - app_network
-
-  game-service-db:
-    image: postgres:14
-    container_name: game-service-db
-    restart: always
-    environment:
-      POSTGRES_USER: ${GAME_SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${GAME_SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${GAME_SERVICE_POSTGRES_DB}
-    ports:
-      - "5434:5432"
-    volumes:
-      - game_postgres_data:/var/lib/postgresql/data
-    networks:
-      - app_network
-
-  app:
-    image: alexandrina581/game-service:latest
-    container_name: game-service
-    working_dir: /game-service
-    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 80
-    ports:
-      - "8003:80"
-    env_file:
-      - .env
-    depends_on:
-      - game-service-db
-    networks:
-      - app_network
-
-volumes:
-  voting_postgres_data:
-  task_pgdata:
-  town_postgres_data:
-  character_postgres_data:
-  user_management_postgres_data:
-  rumours_postgres_data:
-  communication_postgres_data:
-  game_postgres_data:
-  roleplay_postgres_data:
-  shop_postgres_data:
+      - app-network
+    deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
 
 networks:
-  app_network:
+  app-network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  town_postgres_data:
+  character_postgres_data:
+  communication_postgres_data:
+  rumours_postgres_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  redis-gateway-data:
+  task_pgdata:
+  voting_postgres_data:
+  shop_postgres_data:
+  user_management_postgres_data:
+  game_postgres_data:

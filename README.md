@@ -1823,29 +1823,28 @@ Update character asset.
 **Success Response (200):**
 ```json
 {
-  "data": {
-    [
-      {
-        "id": 1,
-        "lobbyId": "test",
-        "type": "activity",
-        "ownerId": 0,
-        "targetId": 1,
-        "text": "Player X was seen near the victim's house last night",
-        "createdAt": "2025-10-01T12:00:00Z"
-      },
-      {
-        "id": 2,
-        "lobbyId": "test",
-        "type": "activity",
-        "ownerId": 0,
-        "targetId": 2,
-        "text": "Player Y has been acting suspiciously",
-        "createdAt": "2025-10-01T12:00:00Z"
-      }
-    ]
-  }
+  "data": [
+    {
+      "id": 1,
+      "lobbyId": "test",
+      "type": "activity",
+      "ownerId": 0,
+      "targetId": 1,
+      "text": "Player X was seen near the victim's house last night",
+      "createdAt": "2025-10-01T12:00:00Z"
+    },
+    {
+      "id": 2,
+      "lobbyId": "test",
+      "type": "activity",
+      "ownerId": 0,
+      "targetId": 2,
+      "text": "Player Y has been acting suspiciously",
+      "createdAt": "2025-10-01T12:00:00Z"
+    }
+  ]
 }
+
 ```
 
 
