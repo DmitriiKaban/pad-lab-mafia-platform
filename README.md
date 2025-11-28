@@ -83,14 +83,11 @@ The game continues with a cycle of day and night phases until one of two conditi
 
 ## Architectural Diagram
 
-<img width="1390" height="1032" alt="image" src="./documentation-resources/Diagram_PAD_lab3.png" />
+<img width="1390" height="1032" alt="image" src="diagram_lab4.drawio.png" />
 
+This architectural diagram illustrates a mature microservices ecosystem centered around a custom-built Message Broker. The system begins with a client interacting through an API Gateway, which has been streamlined to handle only user authentication and caching. All service-to-service communication is routed through the Message Broker, which now carries advanced responsibilities such as load balancing, circuit breaking, thread-per-request handling, and durable message delivery.
 
-The diagram illustrates a scalable, distributed microservices architecture for the Mafia Platform, incorporating service discovery, load balancing, health monitoring, and circuit breaker patterns. The architecture enables horizontal scaling with multiple service instances (2-3 replicas per service), automatic failure detection and recovery, and centralized observability through Grafana + Prometheus monitoring.
-
-The Client communicates exclusively with the API Gateway, which implements Round-Robin and service-load-based load balancing. The Gateway dynamically discovers healthy service instances through the Service Discovery component, which maintains a real-time registry of all microservices. Service Discovery performs automated health checks every 30 seconds, implements circuit breaker logic, and provides log aggregation endpoints. The Redis DB serves as a distributed cache for sessions, authentication tokens, and frequently accessed data, reducing database load across all services.
-
-Each microservice (Game, Voting, Task, Town, Communication, Roleplay, Character, Rumor, Shop, User Management) runs in multiple instances with its own dedicated database, ensuring data ownership and independent scaling. Services register themselves with Service Discovery on startup. Inter-service communication flows through the Gateway for consistency, with arrows representing API calls for state validation, synchronization, and data exchange.
+The Message Broker acts as the backbone of asynchronous communication, interfacing with Redis and domain storage, and supporting both subscriber-based queues for Gateway-to-Service interactions and topic-based queues for inter-service events. Each microservice—ranging from user management to voting and communication—registers its topic interests with the Service Discovery module, enabling dynamic routing and decoupled event handling. The Game Service stands out as a central node, coordinating interactions across the system.
 
 # Technologies & Communication Patterns
 
