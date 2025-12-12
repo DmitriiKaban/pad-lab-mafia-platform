@@ -102,7 +102,7 @@ def init_sources():
         },
         "UserService": {
             "url": os.getenv("USER_DB_URL"),
-            "tables": []
+            "tables": ["user", "pending_transaction"]
         },
         "RumoursService": {
             "url": os.getenv("RUMOURS_DB_URL"),
@@ -111,6 +111,10 @@ def init_sources():
         "CommunicationService": {
             "url": os.getenv("COMMUNICATION_DB_URL"),
             "tables": ["Messages", "Lobbies", "PrivateChannels", "PrivateChannelMembers", "Announcements"]
+        },
+        "GameService": {
+            "url": os.getenv("GAME_DB_URL"),
+            "tables": ["lobbies", "players", "game_events", "votes"]
         }
     }
 
