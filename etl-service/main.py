@@ -103,6 +103,14 @@ def init_sources():
         "UserService": {
             "url": os.getenv("USER_DB_URL"),
             "tables": []
+        },
+        "RumoursService": {
+            "url": os.getenv("RUMOURS_DB_URL"),
+            "tables": ["Rumours"]
+        },
+        "CommunicationService": {
+            "url": os.getenv("COMMUNICATION_DB_URL"),
+            "tables": ["Messages", "Lobbies", "PrivateChannels", "PrivateChannelMembers", "Announcements"]
         }
     }
 
