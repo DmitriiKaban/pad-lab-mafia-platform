@@ -80,17 +80,15 @@ The game continues with a cycle of day and night phases until one of two conditi
   currency rewards. The actions taken during tasks can become fodder for the Rumors Service.
 - Voting Service: Manages the daily voting process to exile a player. It collects votes from all players, tallies the
   results, and reports the outcome to the Game Service.
+- Message Broker: Is the central nervous system of the microservices architecture. It handles asynchronous event dispatching, ensures reliable delivery via durable queues, and orchestrates Distributed Transactions using the **Two-Phase Commit (2PC)** protocol.
 
 ## Architectural Diagram
 
-<img width="1390" height="1032" alt="image" src="./documentation-resources/Diagram_PAD_lab3.png" />
+<img width="1390" height="1032" alt="image" src="diagram_lab5drawio.jpg" />
 
+The updated diagram shows a microservices system strengthened with scalability, redundancy, and analytics. The Redis caching layer has been restructured into a sharded cluster using Consistent Hashing, ensuring balanced distribution and efficient failover. Each microservice now connects to its own replicated database, providing redundancy and resilience against failures.
 
-The diagram illustrates a scalable, distributed microservices architecture for the Mafia Platform, incorporating service discovery, load balancing, health monitoring, and circuit breaker patterns. The architecture enables horizontal scaling with multiple service instances (2-3 replicas per service), automatic failure detection and recovery, and centralized observability through Grafana + Prometheus monitoring.
-
-The Client communicates exclusively with the API Gateway, which implements Round-Robin and service-load-based load balancing. The Gateway dynamically discovers healthy service instances through the Service Discovery component, which maintains a real-time registry of all microservices. Service Discovery performs automated health checks every 30 seconds, implements circuit breaker logic, and provides log aggregation endpoints. The Redis DB serves as a distributed cache for sessions, authentication tokens, and frequently accessed data, reducing database load across all services.
-
-Each microservice (Game, Voting, Task, Town, Communication, Roleplay, Character, Rumor, Shop, User Management) runs in multiple instances with its own dedicated database, ensuring data ownership and independent scaling. Services register themselves with Service Discovery on startup. Inter-service communication flows through the Gateway for consistency, with arrows representing API calls for state validation, synchronization, and data exchange.
+The Message Broker has been extended to act as a saga transaction coordinator, enabling long‑running workflows across services. An ETL service periodically aggregates data from all databases into a centralized Data Warehouse, supporting analytics and monitoring. These enhancements are reflected in the revised architecture diagram, where the Gateway, Broker, Redis cluster, replicated databases, and Data Warehouse form the backbone of the upgraded system.
 
 # Technologies & Communication Patterns
 
@@ -2462,6 +2460,186 @@ Update character asset.
     "message": "Lobby does not exist"
   }
 }
+```
+
+# Message Broker Service Integration
+
+### Overview
+
+The Message Broker is the central nervous system of the microservices architecture. It handles asynchronous event dispatching, ensures reliable delivery via durable queues, and orchestrates Distributed Transactions using the **Two-Phase Commit (2PC)** protocol.
+
+**Protocol:** gRPC
+**Default RPC Port:** `6565`
+**Service ID:** `message-broker`
+
+-----
+
+## 1\. Broker API (Inbound)
+
+*How services talk to the Broker.*
+
+Services (like Town Service or Gateway) use this interface to publish events or query the broker's state.
+
+**Proto File:** `proto/message_broker.proto`
+
+```protobuf
+service MessageBrokerService {
+  // Publishes an event to a specific topic.
+  rpc PublishMessage(PublishRequest) returns (PublishResponse);
+
+  // Returns a list of all active topics.
+  rpc GetTopics(GetTopicsRequest) returns (GetTopicsResponse);
+
+  // Retrieves messages that failed to deliver after max retries.
+  rpc GetDeadLetterMessages(GetDeadLetterMessagesRequest) returns (GetDeadLetterMessagesResponse);
+}
+```
+
+### Methods Detail
+
+#### `PublishMessage`
+
+The main entry point for event-driven communication.
+
+  * **Request:**
+      * `topic_name`: The channel to publish to (e.g., `movement-events`, `task-events`).
+      * `payload`: JSON string containing event data.
+  * **Response:** Returns a UUID `message_id` acknowledging persistence.
+  * **Behavior:** The message is immediately persisted as `PENDING` before dispatching.
+
+#### `GetDeadLetterMessages`
+
+Used for monitoring and manual recovery.
+
+  * **Returns:** List of messages that exceeded the retry limit (5 attempts) or failed 2PC logic.
+
+-----
+
+## 2\. Subscriber Interface (Outbound)
+
+*What services must implement to receive messages.*
+
+Unlike standard REST webhooks, the Message Broker delivers messages via **gRPC calls to the subscribers**. Any service that wants to listen to events (e.g., Task Service) **must implement this gRPC service**.
+
+**Proto File:** `proto/message_subscriber.proto`
+
+```protobuf
+service MessageSubscriber {
+  // Standard Delivery (Fire-and-Forget)
+  rpc ReceiveMessage(MessageRequest) returns (MessageResponse);
+
+  // --- Two-Phase Commit (2PC) Methods ---
+  rpc Prepare(PrepareRequest) returns (PrepareResponse);
+  rpc Commit(CommitRequest) returns (CommitResponse);
+  rpc Rollback(RollbackRequest) returns (RollbackResponse);
+}
+```
+
+### Methods Detail
+
+#### `ReceiveMessage`
+
+Used for standard, non-transactional events.
+
+  * **Flow:** Broker calls this method -\> Subscriber processes logic -\> Returns `acknowledged=true`.
+  * **Retry Policy:** If this call fails or returns false, the Broker will retry up to 5 times.
+
+#### `Prepare` (2PC Phase 1)
+
+  * **Action:** The Subscriber should validate the payload, check logic constraints (e.g., "Does this player exist?"), and reserve necessary resources.
+  * **Response:**
+      * `vote_commit = true`: "I am ready to commit."
+      * `vote_commit = false`: "Abort this transaction."
+
+#### `Commit` (2PC Phase 2 - Success)
+
+  * **Action:** The Subscriber must permanently apply the changes associated with the transaction ID.
+  * **Idempotency:** This might be called multiple times; ensure the change happens only once per `transaction_id`.
+
+#### `Rollback` (2PC Phase 2 - Failure)
+
+  * **Action:** The Subscriber must discard any temporary state or locks associated with the transaction ID.
+
+-----
+
+## 3\. Integration Guide
+
+### How to Subscribe to a Topic
+
+The Message Broker uses the **Discovery Service** to find subscribers. You do not register directly with the Broker.
+
+1.  **Implement the Interface:** Your service must run a gRPC server implementing `MessageSubscriber`.
+2.  **Metadata Registration:** When registering with the Discovery Service, you must include a `subscribedTopics` key in your metadata.
+
+**Example (Python Registration):**
+
+```python
+metadata = {
+    "language": "python",
+    "subscribedTopics": "movement-events" # <--- Broker looks for this
+}
+# Send this metadata during RegisterRequest to Discovery Service
+```
+
+### Transaction Flow (2PC) Logic
+
+The Broker determines if a transaction is standard or 2PC based on the topic complexity and subscriber count.
+
+1.  **Town Service** calls `PublishMessage("movement-events", payload)`.
+2.  **Broker** sees `movement-events` is critical.
+3.  **Broker** calls `Prepare(txId, payload)` on **Task Service**.
+      * *If Task Service votes YES:*
+          * Broker calls `Commit(txId)` on Task Service.
+      * *If Task Service votes NO (or timeout):*
+          * Broker calls `Rollback(txId)` on Task Service.
+          * Broker initiates **Compensating Transaction** (calls `RollbackMovement` on Town Service).
+
+-----
+
+## 4\. Client Code Examples
+
+### Java: Publishing a Message
+
+```java
+@Service
+public class EventPublisher {
+    @GrpcClient("message-broker")
+    private MessageBrokerServiceBlockingStub brokerStub;
+
+    public void sendMovementEvent(long lobbyId, long playerId, long locId) {
+        String payload = String.format("{\"lobbyId\":%d, \"playerId\":%d, \"locationId\":%d}", 
+                                       lobbyId, playerId, locId);
+        
+        PublishRequest request = PublishRequest.newBuilder()
+                .setTopicName("movement-events")
+                .setPayload(payload)
+                .build();
+                
+        brokerStub.publishMessage(request);
+    }
+}
+```
+
+### Python: Implementing Subscriber (Server)
+
+```python
+class MessageSubscriberServer(message_subscriber_pb2_grpc.MessageSubscriberServicer):
+    
+    # Standard Message
+    async def ReceiveMessage(self, request, context):
+        data = json.loads(request.payload)
+        print(f"Got event: {data}")
+        return message_subscriber_pb2.MessageResponse(acknowledged=True)
+
+    # 2PC: Prepare
+    async def Prepare(self, request, context):
+        # Validate data...
+        return message_subscriber_pb2.PrepareResponse(vote_commit=True)
+
+    # 2PC: Commit
+    async def Commit(self, request, context):
+        # Save to DB...
+        return message_subscriber_pb2.CommitResponse(acknowledged=True)
 ```
 
 
