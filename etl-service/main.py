@@ -102,7 +102,11 @@ def init_sources():
         },
         "UserService": {
             "url": os.getenv("USER_DB_URL"),
-            "tables": []
+            "tables": ["user", "pending_transaction"]
+        },
+        "GameService": {
+            "url": os.getenv("GAME_DB_URL"),
+            "tables": ["lobbies", "players", "game_events", "votes"]
         }
     }
 
