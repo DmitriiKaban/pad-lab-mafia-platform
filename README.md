@@ -84,11 +84,11 @@ The game continues with a cycle of day and night phases until one of two conditi
 
 ## Architectural Diagram
 
-<img width="1390" height="1032" alt="image" src="diagram_lab4.drawio.png" />
+<img width="1390" height="1032" alt="image" src="diagram_lab5drawio.jpg" />
 
-This architectural diagram illustrates a mature microservices ecosystem centered around a custom-built Message Broker. The system begins with a client interacting through an API Gateway, which has been streamlined to handle only user authentication and caching. All service-to-service communication is routed through the Message Broker, which now carries advanced responsibilities such as load balancing, circuit breaking, thread-per-request handling, and durable message delivery.
+The updated diagram shows a microservices system strengthened with scalability, redundancy, and analytics. The Redis caching layer has been restructured into a sharded cluster using Consistent Hashing, ensuring balanced distribution and efficient failover. Each microservice now connects to its own replicated database, providing redundancy and resilience against failures.
 
-The Message Broker acts as the backbone of asynchronous communication, interfacing with Redis and domain storage, and supporting both subscriber-based queues for Gateway-to-Service interactions and topic-based queues for inter-service events. Each microservice—ranging from user management to voting and communication—registers its topic interests with the Service Discovery module, enabling dynamic routing and decoupled event handling. The Game Service stands out as a central node, coordinating interactions across the system.
+The Message Broker has been extended to act as a saga transaction coordinator, enabling long‑running workflows across services. An ETL service periodically aggregates data from all databases into a centralized Data Warehouse, supporting analytics and monitoring. These enhancements are reflected in the revised architecture diagram, where the Gateway, Broker, Redis cluster, replicated databases, and Data Warehouse form the backbone of the upgraded system.
 
 # Technologies & Communication Patterns
 
