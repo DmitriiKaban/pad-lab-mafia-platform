@@ -31,7 +31,9 @@ services:
       # CONFIG
       MONITOR_CONFIG = {
           "db_town_primary": "/triggers/promote_town",
-          "db_character_primary": "/triggers/promote_character"
+          "db_character_primary": "/triggers/promote_character",
+          "db_user_management_primary": "/triggers/promote_user",
+          "db_game_primary": "/triggers/promote_game"
       }
       
       def is_reachable(host, port=5432):
@@ -80,17 +82,19 @@ services:
       - db_character_primary
       - db_task_primary
       - db_voting_primary
-      - db_user_management_service
+      - db_user_management_primary
+      - db_game_primary
     environment:
       PYTHONUNBUFFERED: 1
-      WAREHOUSE_URL: "postgresql://warehouse_user:warehouse_password@data-warehouse:5432/data_warehouse"
+      WAREHOUSE_URL: "postgresql://${WAREHOUSE_SERVICE_POSTGRES_USER}:${WAREHOUSE_SERVICE_POSTGRES_PASSWORD}@data-warehouse:5432/data_warehouse"
       TOWN_DB_URL: "postgresql://${TOWN_SERVICE_POSTGRES_USER}:${TOWN_SERVICE_POSTGRES_PASSWORD}@db_town_primary:5432,db_town_replica_1:5432,db_town_replica_2:5432/${TOWN_SERVICE_POSTGRES_DB}"
       CHARACTER_DB_URL: "postgresql://${CHARACTER_SERVICE_POSTGRES_USER}:${CHARACTER_SERVICE_POSTGRES_PASSWORD}@db_character_primary:5432,db_character_replica_1:5432,db_character_replica_2:5432/${CHARACTER_SERVICE_POSTGRES_DB}"
       TASK_DB_URL: "postgresql://${TASK_SERVICE_POSTGRES_USER}:${TASK_SERVICE_POSTGRES_PASSWORD}@db_task_primary:5432,db_task_replica_1:5432,db_task_replica_2:5432/${TASK_SERVICE_POSTGRES_DB}"
       VOTING_DB_URL: "postgresql://${VOTING_SERVICE_POSTGRES_USER}:${VOTING_SERVICE_POSTGRES_PASSWORD}@db_voting_primary:5432,db_voting_replica_1:5432,db_voting_replica_2:5432/${VOTING_SERVICE_POSTGRES_DB}"
-      USER_DB_URL: "postgresql://${USER_MANAGEMENT_SERVICE_POSTGRES_USER}:${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}@db_user_management_service:5432/${USER_MANAGEMENT_SERVICE_POSTGRES_DB}"
-      RUMOURS_DB_URL: "postgresql://${RUMOURS_SERVICE_POSTGRES_USER}:${RUMOURS_SERVICE_POSTGRES_PASSWORD}@comm-postgres-primary:5432/${RUMOURS_SERVICE_POSTGRES_DB}"
-      COMMUNICATION_DB_URL: "postgresql://${COMMUNICATION_SERVICE_POSTGRES_USER}:${COMMUNICATION_SERVICE_POSTGRES_PASSWORD}@rumours-postgres-primary:5432/${COMMUNICATION_SERVICE_POSTGRES_DB}"
+      RUMOURS_DB_URL: "postgresql://${RUMOURS_SERVICE_POSTGRES_USER}:${RUMOURS_SERVICE_POSTGRES_PASSWORD}@rumours-postgres-primary:5432/${RUMOURS_SERVICE_POSTGRES_DB}"
+      COMMUNICATION_DB_URL: "postgresql://${COMMUNICATION_SERVICE_POSTGRES_USER}:${COMMUNICATION_SERVICE_POSTGRES_PASSWORD}@comm-postgres-primary:5432/${COMMUNICATION_SERVICE_POSTGRES_DB}"
+      USER_DB_URL: "postgresql://${USER_MANAGEMENT_SERVICE_POSTGRES_USER}:${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}@db_user_management_primary:5432,db_user_management_replica_1:5432,db_user_management_replica_2:5432/${USER_MANAGEMENT_SERVICE_POSTGRES_DB}"
+      GAME_DB_URL: "postgresql://${GAME_SERVICE_POSTGRES_USER}:${GAME_SERVICE_POSTGRES_PASSWORD}@db_game_primary:5432,db_game_replica_1:5432,db_game_replica_2:5432/${GAME_SERVICE_POSTGRES_DB}"
       SYNC_INTERVAL_SECONDS: 60
     networks:
       - app-network
@@ -1287,30 +1291,210 @@ services:
     networks:
       - app-network
 
-  db_user_management_service:
-    image: postgres:14
-    environment:
-      POSTGRES_USER: ${USER_MANAGEMENT_SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${USER_MANAGEMENT_SERVICE_POSTGRES_DB}
-    ports:
-      - "5433:5432"
+  # === USER MANAGEMENT DATABASE REPLICATION ===
+
+  # --- FAILOVER MONITOR ---
+  user-failover-monitor:
+    image: python:3.10-slim
+    container_name: user-failover-monitor
+    depends_on:
+      - db_user_management_primary
     volumes:
-      - user_management_postgres_data:/var/lib/postgresql/data
+      - user_failover_triggers:/triggers
+    networks:
+      - app-network
+    command: |
+      bash -c '
+      pip install psycopg2-binary &&
+      cat <<EOF > /monitor.py
+      import socket, time, os
+
+      TARGET = "db_user_management_primary"
+      TRIGGER = "/triggers/promote_user"
+
+      def is_reachable(host, port=5432):
+          try:
+              sock = socket.create_connection((host, port), timeout=2)
+              sock.close()
+              return True
+          except Exception:
+              return False
+
+      print(f"Monitoring {TARGET}...")
+      while True:
+          try:
+              if is_reachable(TARGET):
+                  if os.path.exists(TRIGGER): os.remove(TRIGGER)
+              else:
+                  print(f"ALERT: {TARGET} DOWN. Triggering Failover...")
+                  with open(TRIGGER, "w") as f: f.write("promote")
+                  time.sleep(10)
+          except Exception as e:
+              print(f"Error: {e}")
+          time.sleep(5)
+      EOF
+      python3 -u /monitor.py
+      '
+
+  # --- USER MANAGEMENT PRIMARY ---
+  db_user_management_primary:
+    image: postgres:17
+    container_name: db_user_management_primary
+    environment:
+      - POSTGRES_USER=${USER_MANAGEMENT_SERVICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${USER_MANAGEMENT_SERVICE_POSTGRES_DB}
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    command: |
+      bash -c "
+      # 1. Custom HBA for immediate permission access
+      echo 'local all all trust' > /tmp/custom_pg_hba.conf
+      echo 'host all all 0.0.0.0/0 trust' >> /tmp/custom_pg_hba.conf
+      echo 'host replication all 0.0.0.0/0 trust' >> /tmp/custom_pg_hba.conf
+      chown postgres:postgres /tmp/custom_pg_hba.conf
+      chmod 600 /tmp/custom_pg_hba.conf
+
+      # 2. Start Postgres
+      exec docker-entrypoint.sh postgres -c hba_file=/tmp/custom_pg_hba.conf -c wal_level=replica -c hot_standby=on -c max_wal_senders=10 -c max_replication_slots=10 -c hot_standby_feedback=on
+      "
+    volumes:
+      - user_management_primary_data:/var/lib/postgresql/data
     networks:
       - app-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${USER_MANAGEMENT_SERVICE_POSTGRES_USER} -d ${USER_MANAGEMENT_SERVICE_POSTGRES_DB}" ]
-      interval: 10s
+      test: [ "CMD-SHELL", "pg_isready -U ${USER_MANAGEMENT_SERVICE_POSTGRES_USER}" ]
+      interval: 5s
       timeout: 5s
       retries: 5
+
+  # --- USER MANAGEMENT REPLICA 1 (Cold Start + Smart Slot) ---
+  db_user_management_replica_1:
+    image: postgres:17
+    container_name: db_user_management_replica_1
+    depends_on:
+      db_user_management_primary:
+        condition: service_healthy
+    environment:
+      - POSTGRES_USER=${USER_MANAGEMENT_SERVICE_POSTGRES_USER}
+      - PGPASSWORD=${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${USER_MANAGEMENT_SERVICE_POSTGRES_DB}
+    volumes:
+      - user_management_replica1_data:/var/lib/postgresql/data
+      - user_failover_triggers:/triggers
+    networks:
+      - app-network
+    command: |
+      bash -c "
+      set -e
+      # Restart Check
+      if [ -f /triggers/promote_user.done ] && [ -f /var/lib/postgresql/data/PG_VERSION ]; then
+          echo '!!! ALREADY MASTER. Starting...'
+          rm -f /var/lib/postgresql/data/standby.signal
+          exec gosu postgres postgres
+      fi
+
+      while true; do
+          # Failover Check
+          if [ -f /triggers/promote_user ]; then
+             echo '!!! FAILOVER TRIGGERED !!!'
+
+             # Cold Start Logic (If Primary Dead + No Data)
+             if [ ! -f /var/lib/postgresql/data/PG_VERSION ]; then
+                 if pg_isready -h db_user_management_primary -p 5432 -U ${USER_MANAGEMENT_SERVICE_POSTGRES_USER}; then
+                     echo 'Primary is ALIVE. Retrying sync...'
+                 else
+                     echo 'WARNING: Primary Dead + No Data. Creating FRESH DB...'
+                     mv /triggers/promote_user /triggers/promote_user.done
+                     rm -rf /var/lib/postgresql/data/*
+                     chown postgres:postgres /var/lib/postgresql/data
+                     chmod 0700 /var/lib/postgresql/data
+
+                     gosu postgres initdb -D /var/lib/postgresql/data
+                     gosu postgres pg_ctl -D /var/lib/postgresql/data -w start
+                     gosu postgres psql -c \"CREATE USER ${USER_MANAGEMENT_SERVICE_POSTGRES_USER} WITH PASSWORD '${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}';\"
+                     gosu postgres psql -c \"ALTER USER ${USER_MANAGEMENT_SERVICE_POSTGRES_USER} WITH SUPERUSER;\"
+                     gosu postgres psql -c \"CREATE DATABASE ${USER_MANAGEMENT_SERVICE_POSTGRES_DB} OWNER ${USER_MANAGEMENT_SERVICE_POSTGRES_USER};\"
+                     gosu postgres pg_ctl -D /var/lib/postgresql/data -m fast -w stop
+
+                     echo \"host all all 0.0.0.0/0 trust\" >> /var/lib/postgresql/data/pg_hba.conf
+                     echo 'Starting NEW Master...'
+                     exec gosu postgres postgres
+                 fi
+             fi
+
+             mv /triggers/promote_user /triggers/promote_user.done
+             rm -f /var/lib/postgresql/data/standby.signal
+             exec gosu postgres postgres
+          fi
+
+          if pg_isready -h db_user_management_primary -p 5432 -U ${USER_MANAGEMENT_SERVICE_POSTGRES_USER}; then
+              rm -rf /var/lib/postgresql/data/*
+              chmod 0700 /var/lib/postgresql/data
+              # Smart Backup: Try Create (-C), fallback to Use (-S)
+              if gosu postgres pg_basebackup --pgdata=/var/lib/postgresql/data -R -C -S user_slot_1 --host=db_user_management_primary --port=5432 --username=${USER_MANAGEMENT_SERVICE_POSTGRES_USER} --no-password; then
+                  break 
+              fi
+              if gosu postgres pg_basebackup --pgdata=/var/lib/postgresql/data -R -S user_slot_1 --host=db_user_management_primary --port=5432 --username=${USER_MANAGEMENT_SERVICE_POSTGRES_USER} --no-password; then
+                   break
+              fi
+          fi
+          sleep 2
+      done
+
+      # Background Watcher
+      (
+        while true; do
+          sleep 2
+          if [ -f /triggers/promote_user ]; then
+            gosu postgres pg_ctl promote -D /var/lib/postgresql/data
+            mv /triggers/promote_user /triggers/promote_user.done
+            break
+          fi
+        done
+      ) &
+      exec gosu postgres postgres -c hot_standby=on
+      "
+
+  # --- USER MANAGEMENT REPLICA 2 ---
+  db_user_management_replica_2:
+    image: postgres:17
+    container_name: db_user_management_replica_2
+    depends_on:
+      db_user_management_primary:
+        condition: service_healthy
+    environment:
+      - POSTGRES_USER=${USER_MANAGEMENT_SERVICE_POSTGRES_USER}
+      - PGPASSWORD=${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}
+    volumes:
+      - user_management_replica2_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    command: |
+      bash -c "
+      set -e
+      while true; do
+          if pg_isready -h db_user_management_primary -p 5432 -U ${USER_MANAGEMENT_SERVICE_POSTGRES_USER}; then
+              rm -rf /var/lib/postgresql/data/*
+              chmod 0700 /var/lib/postgresql/data
+              # Smart Backup: Try Create (-C), fallback to Use (-S)
+              if gosu postgres pg_basebackup --pgdata=/var/lib/postgresql/data -R -C -S user_slot_2 --host=db_user_management_primary --port=5432 --username=${USER_MANAGEMENT_SERVICE_POSTGRES_USER} --no-password; then
+                  break 
+              fi
+              if gosu postgres pg_basebackup --pgdata=/var/lib/postgresql/data -R -S user_slot_2 --host=db_user_management_primary --port=5432 --username=${USER_MANAGEMENT_SERVICE_POSTGRES_USER} --no-password; then
+                   break
+              fi
+          fi
+          sleep 2
+      done
+      chown -R postgres:postgres /var/lib/postgresql/data
+      chmod 0700 /var/lib/postgresql/data
+      exec gosu postgres postgres -c hot_standby=on
+      "
 
   user-management-service:
     image: alexandrina581/user-management-service:latest
     pull_policy: always
     command: uvicorn app.main:app --host 0.0.0.0 --port 80
-    ports:
-      - "6567:6565"
     env_file:
       - .env
     environment:
@@ -1324,50 +1508,258 @@ services:
       USER_MANAGEMENT_SERVICE_POSTGRES_USER: ${USER_MANAGEMENT_SERVICE_POSTGRES_USER}
       USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD: ${USER_MANAGEMENT_SERVICE_POSTGRES_PASSWORD}
       USER_MANAGEMENT_SERVICE_POSTGRES_DB: ${USER_MANAGEMENT_SERVICE_POSTGRES_DB}
-      USER_MANAGEMENT_SERVICE_POSTGRES_HOST: db_user_management_service
+      USER_MANAGEMENT_SERVICE_POSTGRES_HOST: db_user_management_primary
+      USER_MANAGEMENT_SERVICE_POSTGRES_REPLICA_HOSTS: db_user_management_replica_1,db_user_management_replica_2
       USER_MANAGEMENT_SERVICE_POSTGRES_PORT: 5432
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME}
       SECRET_KEY: ${SECRET_KEY}
       ALGORITHM: ${ALGORITHM}
     depends_on:
-      db_user_management_service:
+      db_user_management_primary:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
     networks:
       - app-network
     deploy:
-      replicas: 1
+      replicas: 2
       endpoint_mode: dnsrr
     labels:
       logging: "promtail"
       logging_jobname: "user-management-service"
 
-  db_game_service:
-    image: postgres:14
-    environment:
-      POSTGRES_USER: ${GAME_SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${GAME_SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${GAME_SERVICE_POSTGRES_DB}
-    ports:
-      - "5434:5432"
+  # === GAME SERVICE DATABASE REPLICATION ===
+
+  # --- GAME FAILOVER MONITOR ---
+  game-failover-monitor:
+    image: python:3.10-slim
+    container_name: game-failover-monitor
+    depends_on:
+      - db_game_primary
     volumes:
-      - game_postgres_data:/var/lib/postgresql/data
+      - game_failover_triggers:/triggers
+    networks:
+      - app-network
+    command: |
+      bash -c '
+      pip install psycopg2-binary &&
+      cat <<EOF > /monitor.py
+      import socket, time, os
+
+      TARGET = "db_game_primary"
+      TRIGGER = "/triggers/promote_game"
+
+      def is_reachable(host, port=5432):
+          try:
+              sock = socket.create_connection((host, port), timeout=2)
+              sock.close()
+              return True
+          except Exception:
+              return False
+
+      print(f"Monitoring {TARGET}...")
+      while True:
+          try:
+              if is_reachable(TARGET):
+                  if os.path.exists(TRIGGER): os.remove(TRIGGER)
+              else:
+                  print(f"ALERT: {TARGET} DOWN. Triggering Failover...")
+                  with open(TRIGGER, "w") as f: f.write("promote")
+                  time.sleep(10)
+          except Exception as e:
+              print(f"Error: {e}")
+          time.sleep(5)
+      EOF
+      python3 -u /monitor.py
+      '
+
+  # --- GAME PRIMARY ---
+  db_game_primary:
+    image: postgres:17
+    container_name: db_game_primary
+    environment:
+      - POSTGRES_USER=${GAME_SERVICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${GAME_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${GAME_SERVICE_POSTGRES_DB}
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    command: |
+      bash -c "
+      # 1. Custom HBA for immediate permission access
+      echo 'local all all trust' > /tmp/custom_pg_hba.conf
+      echo 'host all all 0.0.0.0/0 trust' >> /tmp/custom_pg_hba.conf
+      echo 'host replication all 0.0.0.0/0 trust' >> /tmp/custom_pg_hba.conf
+      chown postgres:postgres /tmp/custom_pg_hba.conf
+      chmod 600 /tmp/custom_pg_hba.conf
+
+      # 2. Start Postgres
+      exec docker-entrypoint.sh postgres -c hba_file=/tmp/custom_pg_hba.conf -c wal_level=replica -c hot_standby=on -c max_wal_senders=10 -c max_replication_slots=10 -c hot_standby_feedback=on
+      "
+    volumes:
+      - game_primary_data:/var/lib/postgresql/data
     networks:
       - app-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${GAME_SERVICE_POSTGRES_USER} -d ${GAME_SERVICE_POSTGRES_DB}" ]
-      interval: 10s
+      test: [ "CMD-SHELL", "pg_isready -U ${GAME_SERVICE_POSTGRES_USER}" ]
+      interval: 5s
       timeout: 5s
       retries: 5
+
+  # --- GAME REPLICA 1 (Cold Start + Smart Slot) ---
+  db_game_replica_1:
+    image: postgres:17
+    container_name: db_game_replica_1
+    depends_on:
+      db_game_primary:
+        condition: service_healthy
+    environment:
+      - POSTGRES_USER=${GAME_SERVICE_POSTGRES_USER}
+      - PGPASSWORD=${GAME_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${GAME_SERVICE_POSTGRES_DB}
+    volumes:
+      - game_replica1_data:/var/lib/postgresql/data
+      - game_failover_triggers:/triggers
+    networks:
+      - app-network
+    command: |
+      bash -c "
+      set -e
+
+      # 1. RESTART CHECK
+      if [ -f /triggers/promote_game.done ]; then
+          if [ -f /var/lib/postgresql/data/PG_VERSION ]; then
+              echo '!!! ALREADY MASTER. Starting...'
+              rm -f /var/lib/postgresql/data/standby.signal
+              exec gosu postgres postgres
+          else
+              echo '!!! STALE MARKER. Resetting...'
+              rm /triggers/promote_game.done
+          fi
+      fi
+
+      # 2. SYNC LOOP
+      while true; do
+          if [ -f /triggers/promote_game ]; then
+             echo '!!! FAILOVER TRIGGERED !!!'
+
+             # COLD START LOGIC
+             if [ ! -f /var/lib/postgresql/data/PG_VERSION ]; then
+                 if pg_isready -h db_game_primary -p 5432 -U ${GAME_SERVICE_POSTGRES_USER}; then
+                     echo 'Primary is ALIVE. Retrying sync...'
+                     sleep 2
+                     continue
+                 else
+                     echo 'WARNING: Primary Dead + No Data. Creating FRESH DB...'
+                     mv /triggers/promote_game /triggers/promote_game.done
+                     rm -rf /var/lib/postgresql/data/*
+                     chown postgres:postgres /var/lib/postgresql/data
+                     chmod 0700 /var/lib/postgresql/data
+
+                     gosu postgres initdb -D /var/lib/postgresql/data
+                     gosu postgres pg_ctl -D /var/lib/postgresql/data -w start
+                     gosu postgres psql -c \"CREATE USER ${GAME_SERVICE_POSTGRES_USER} WITH PASSWORD '${GAME_SERVICE_POSTGRES_PASSWORD}';\"
+                     gosu postgres psql -c \"ALTER USER ${GAME_SERVICE_POSTGRES_USER} WITH SUPERUSER;\"
+                     gosu postgres psql -c \"CREATE DATABASE ${GAME_SERVICE_POSTGRES_DB} OWNER ${GAME_SERVICE_POSTGRES_USER};\"
+                     gosu postgres pg_ctl -D /var/lib/postgresql/data -m fast -w stop
+
+                     echo \"host all all 0.0.0.0/0 trust\" >> /var/lib/postgresql/data/pg_hba.conf
+                     echo 'Starting NEW Master...'
+                     exec gosu postgres postgres
+                 fi
+             fi
+
+             mv /triggers/promote_game /triggers/promote_game.done
+             rm -f /var/lib/postgresql/data/standby.signal
+             chown -R postgres:postgres /var/lib/postgresql/data
+             chmod 0700 /var/lib/postgresql/data
+             exec gosu postgres postgres
+          fi
+
+          if pg_isready -h db_game_primary -p 5432 -U ${GAME_SERVICE_POSTGRES_USER}; then
+              rm -rf /var/lib/postgresql/data/*
+              chmod 0700 /var/lib/postgresql/data
+
+              echo 'Attempting to create slot and backup...'
+              # Attempt 1: Try to CREATE (-C) the slot
+              if gosu postgres pg_basebackup --pgdata=/var/lib/postgresql/data -R -C -S game_slot_1 --host=db_game_primary --port=5432 --username=${GAME_SERVICE_POSTGRES_USER} --no-password; then
+                  echo 'Backup Successful (New Slot)!'
+                  break 
+              fi
+
+              echo 'Slot creation failed (already exists?). Retrying without creation...'
+              # Attempt 2: Try to USE existing slot (No -C)
+              if gosu postgres pg_basebackup --pgdata=/var/lib/postgresql/data -R -S game_slot_1 --host=db_game_primary --port=5432 --username=${GAME_SERVICE_POSTGRES_USER} --no-password; then
+                   echo 'Backup Successful (Existing Slot)!'
+                   break
+              fi
+          fi
+          sleep 2
+      done
+
+      chown -R postgres:postgres /var/lib/postgresql/data
+      chmod 0700 /var/lib/postgresql/data
+
+      # Background Watcher
+      (
+        while true; do
+          sleep 2
+          if [ -f /triggers/promote_game ]; then
+            gosu postgres pg_ctl promote -D /var/lib/postgresql/data
+            mv /triggers/promote_game /triggers/promote_game.done
+            break
+          fi
+        done
+      ) &
+      exec gosu postgres postgres -c hot_standby=on
+      "
+
+  # --- GAME REPLICA 2 ---
+  db_game_replica_2:
+    image: postgres:17
+    container_name: db_game_replica_2
+    depends_on:
+      db_game_primary:
+        condition: service_healthy
+    environment:
+      - POSTGRES_USER=${GAME_SERVICE_POSTGRES_USER}
+      - PGPASSWORD=${GAME_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${GAME_SERVICE_POSTGRES_DB}
+    volumes:
+      - game_replica2_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    command: |
+      bash -c "
+      set -e
+      while true; do
+          if pg_isready -h db_game_primary -p 5432 -U ${GAME_SERVICE_POSTGRES_USER}; then
+              rm -rf /var/lib/postgresql/data/*
+              chmod 0700 /var/lib/postgresql/data
+
+              echo 'Attempting to create slot and backup...'
+              # Attempt 1: Try to CREATE (-C) the slot
+              if gosu postgres pg_basebackup --pgdata=/var/lib/postgresql/data -R -C -S game_slot_2 --host=db_game_primary --port=5432 --username=${GAME_SERVICE_POSTGRES_USER} --no-password; then
+                  echo 'Backup Successful (New Slot)!'
+                  break 
+              fi
+
+              echo 'Slot creation failed (already exists?). Retrying without creation...'
+              # Attempt 2: Try to USE existing slot (No -C)
+              if gosu postgres pg_basebackup --pgdata=/var/lib/postgresql/data -R -S game_slot_2 --host=db_game_primary --port=5432 --username=${GAME_SERVICE_POSTGRES_USER} --no-password; then
+                   echo 'Backup Successful (Existing Slot)!'
+                   break
+              fi
+          fi
+          sleep 2
+      done
+      chown -R postgres:postgres /var/lib/postgresql/data
+      chmod 0700 /var/lib/postgresql/data
+      exec gosu postgres postgres -c hot_standby=on
+      "
 
   game-service:
     image: alexandrina581/game-service:latest
     pull_policy: always
-    ports:
-      - "6568:6565"
-      - "8090:80"
     env_file:
       - .env
     environment:
@@ -1387,17 +1779,24 @@ services:
       GAME_SERVICE_POSTGRES_USER: ${GAME_SERVICE_POSTGRES_USER}
       GAME_SERVICE_POSTGRES_PASSWORD: ${GAME_SERVICE_POSTGRES_PASSWORD}
       GAME_SERVICE_POSTGRES_DB: ${GAME_SERVICE_POSTGRES_DB}
-      GAME_SERVICE_POSTGRES_HOST: db_game_service
+      # Primary for writes
+      GAME_SERVICE_POSTGRES_HOST_WRITE: db_game_primary
+      GAME_SERVICE_POSTGRES_PORT_WRITE: 5432
+      # Replica for reads
+      GAME_SERVICE_POSTGRES_HOST_READ: db_game_replica_1
+      GAME_SERVICE_POSTGRES_PORT_READ: 5432
+      # Legacy fallback
+      GAME_SERVICE_POSTGRES_HOST: db_game_primary
       GAME_SERVICE_POSTGRES_PORT: 5432
     depends_on:
-      db_game_service:
+      db_game_primary:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
     networks:
       - app-network
     deploy:
-      replicas: 1
+      replicas: 2
       endpoint_mode: dnsrr
     labels:
       logging: "promtail"
@@ -1480,7 +1879,10 @@ volumes:
   task_pgdata:
   voting_postgres_data:
   user_management_postgres_data:
-  game_postgres_data:
+  game_primary_data:
+  game_replica1_data:
+  game_replica2_data:
+  game_failover_triggers:
   town_primary_data:
   town_replica_data:
   character_primary_data:
@@ -1499,4 +1901,8 @@ volumes:
   voting_replica1_data:
   voting_replica2_data:
   voting_failover_triggers:
+  user_management_primary_data:
+  user_management_replica1_data:
+  user_management_replica2_data:
+  user_failover_triggers:
 
